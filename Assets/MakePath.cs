@@ -2,131 +2,342 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
-using System;
+using UnityEditor.ShaderKeywordFilter;
+using Unity.VisualScripting;
+using UnityEditor;
+using TMPro;
+using System.IO;
+using System.Globalization;
 public class MakePath : MonoBehaviour
 {
-
-    struct Node
-    {
-        public bool root, attractor;
-    }
-
-    GameObject obj;
     Texture2D tex;
 
-    Color[,] pixels; // use a 2d array for ease
-    Node[,] nodes;
+    // will determine how large gaps between uv coord placements of nodes are
+    int resolution = 100; //0.01 coord gaps
 
-    int numAttractors = 50;
+    int numAttractors = 6;
+    //int tempNumAttractors = 6;
+    int numRoots = 1;
+
+    // We're gonna choose to store attractors and growers in a 2D array so that we may have their placement
+    // line up with their position, allowing for some optomization
+    Node[,] nodes;
+    List<Node> attractors;
+    List<Node> growers;
 
     void Start()
     {
-        tex = (Texture2D)obj.GetComponent<MeshRenderer>().material.mainTexture;
-        Color[] pixelTemp = tex.GetPixels();
-        pixels = new Color[tex.width,tex.height];
-        nodes = new Node[tex.width, tex.height];
-        for (int i = 0; i < tex.width; i++)
+        nodes = new Node[resolution,resolution];
+        attractors = new List<Node>();
+        growers = new List<Node>();
+        PlaceRootNodes();
+        PlaceAttractionPoints();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown("g"))
         {
-            for(int j = 0; j < tex.height; j++)
-            {
-                pixels[j, i] = pixelTemp[i * tex.width + j];
-            }
+            CreatePath();
+        }
+        if (Input.GetKeyDown("p"))
+        {
+            PrintPath();
+        }
+        if (Input.GetKeyDown("c"))
+        {
+            CreateFullPath();
+        }
+        if (Input.GetKeyDown("w"))
+        {
+            WritePath();
         }
     }
 
-    private void PlaceRootNodes(int r) // for now, just start with only one root node in bottom left
+    private void PlaceRootNodes() // for now, just start with only one root node in bottom left
     {
-        nodes[0, 0].root = true;
-        nodes[0, 0].attractor = false;
+        Grower g = new Grower(new Vector2(0, resolution-1), nodes, null);
+        nodes[0, resolution-1] = g;
+        growers.Add(g);
     }
 
     private void PlaceAttractionPoints() // arbitrary placement for now
     {
-        // using someone elses code for now
-        List<Vector2> points = GeneratePoints(100, new Vector2(tex.width, tex.height), 30);
-
-        for(int i = 0; i < points.Count; i++)
+        for(int i = 0; i < resolution; i++)
         {
-            if (!nodes[(int)points[i].x, (int)points[i].y].root)
+            for(int j = 0; j < resolution; j++)
             {
-                nodes[(int)points[i].x, (int)points[i].y].attractor = true;
+                if (nodes[j,i] == null)
+                {
+                    int bruh = UnityEngine.Random.Range(1, 4);
+                    if(bruh == 1)
+                    {
+                        Attractor a = new Attractor(new Vector2(j, i), nodes, 5, 2);
+                        attractors.Add(a);
+                        nodes[j, i] = a;
+                    }
+                }
             }
         }
     }
 
     private void CreatePath()
     {
-
-    }
-
-    // NOT MY CODE
-    public static List<Vector2> GeneratePoints(float radius, Vector2 sampleRegionSize, int numSamplesBeforeRejection = 30)
-    {
-        float cellSize = radius / Mathf.Sqrt(2);
-
-        int[,] grid = new int[Mathf.CeilToInt(sampleRegionSize.x / cellSize), Mathf.CeilToInt(sampleRegionSize.y / cellSize)];
-        List<Vector2> points = new List<Vector2>();
-        List<Vector2> spawnPoints = new List<Vector2>();
-
-        spawnPoints.Add(sampleRegionSize / 4);
-        while (spawnPoints.Count > 0)
+        List<Grower> influencedNodes = new List<Grower>();
+        foreach (Attractor a in attractors)
         {
-            int spawnIndex = UnityEngine.Random.Range(0, spawnPoints.Count);
-            Vector2 spawnCentre = spawnPoints[spawnIndex];
-            bool candidateAccepted = false;
-
-            for (int i = 0; i < numSamplesBeforeRejection; i++)
+            if (a.active)
             {
-                float angle = UnityEngine.Random.value * Mathf.PI * 2;
-                Vector2 dir = new Vector2(Mathf.Sin(angle), Mathf.Cos(angle));
-                Vector2 candidate = spawnCentre + dir * UnityEngine.Random.Range(radius, 2 * radius);
-                if (IsValid(candidate, sampleRegionSize, cellSize, radius, points, grid))
+                // Find the closest growth node. If it's close enough to be in kill radius, kill this attractor.
+                // If it's only in influence radius, affect that growth node's grow direction
+                // If there are no nearby nodes, do nothing.
+
+                (Grower, bool) info = a.GetInfluencedNode();
+                Grower g = info.Item1;
+                bool dying = info.Item2;
+                if (g != null)
                 {
-                    points.Add(candidate);
-                    spawnPoints.Add(candidate);
-                    grid[(int)(candidate.x / cellSize), (int)(candidate.y / cellSize)] = points.Count;
-                    candidateAccepted = true;
-                    break;
+                    Vector2 pushDir = new Vector2(a.pos.x - g.pos.x, a.pos.y - g.pos.y).normalized;
+                    g.growthDir += pushDir;
+                    g.numInfluencers++;
+
+                    if (!g.active)
+                    {
+                        g.active = true;
+                        influencedNodes.Add(g);
+                    }
+                }
+                if (dying)
+                {
+                    nodes[(int)a.pos.x, (int)a.pos.y] = null;
+                    a.active = false;
+                    g.numKills++;
                 }
             }
-            if (!candidateAccepted)
-            {
-                spawnPoints.RemoveAt(spawnIndex);
-            }
-
         }
 
-        return points;
+        // Now we can iterate over the growers, and have them move in their grow directions
+        foreach (Grower g in influencedNodes)
+        {
+            // Create new growth node in direction of growth direction
+            //ANNOYING: round will not always round up when result is 0.5, so we gotta do this
+            Vector2 finalGrowDir = new Vector2(g.growthDir.x / g.numInfluencers, g.growthDir.y / g.numInfluencers).normalized;
+            int x = Mathf.RoundToInt(finalGrowDir.x);
+            int y = Mathf.RoundToInt(finalGrowDir.y);
+            if (g.growthDir.x / g.numInfluencers == 0.5)
+            {
+                x = 1;
+            }
+            if (g.growthDir.x / g.numInfluencers == -0.5)
+            {
+                x = -1;
+            }
+            if (g.growthDir.y / g.numInfluencers == 0.5)
+            {
+                y = 1;
+            }
+            if (g.growthDir.y / g.numInfluencers == -0.5)
+            {
+                y = -1;
+            }
+            if (x == 0 && y == 0)
+            {
+                Debug.Log("PROBLEM");
+                Debug.Log(g.growthDir);
+                Debug.Log(g.numInfluencers);
+                Debug.Log(finalGrowDir);
+            }
+
+            Vector2 newGrowthPos = new Vector2(g.pos.x + x, g.pos.y + y);
+            if (nodes[(int)newGrowthPos.x, (int)newGrowthPos.y] != null)
+            {
+                g.growthDir = Vector2.zero;
+                g.numInfluencers = 0;
+                g.active = false;
+            }
+            else
+            {
+                Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), nodes, g);
+                growers.Add(leaf);
+                nodes[(int)leaf.pos.x, (int)leaf.pos.y] = leaf;
+
+                g.growthDir = Vector2.zero;
+                g.numInfluencers = 0;
+                g.active = false;
+            }
+        }
+        Debug.Log("Step");
     }
 
-    static bool IsValid(Vector2 candidate, Vector2 sampleRegionSize, float cellSize, float radius, List<Vector2> points, int[,] grid)
+    // This is pretty much the same function as above, it just does it all at once
+    private void CreateFullPath()
     {
-        if (candidate.x >= 0 && candidate.x < sampleRegionSize.x && candidate.y >= 0 && candidate.y < sampleRegionSize.y)
+        int growing = 0;
+        while (growing < 100) //TEMPORRARY SET 
         {
-            int cellX = (int)(candidate.x / cellSize);
-            int cellY = (int)(candidate.y / cellSize);
-            int searchStartX = Mathf.Max(0, cellX - 2);
-            int searchEndX = Mathf.Min(cellX + 2, grid.GetLength(0) - 1);
-            int searchStartY = Mathf.Max(0, cellY - 2);
-            int searchEndY = Mathf.Min(cellY + 2, grid.GetLength(1) - 1);
-
-            for (int x = searchStartX; x <= searchEndX; x++)
+            growing++;
+            List<Grower> influencedNodes = new List<Grower>();
+            foreach (Attractor a in attractors)
             {
-                for (int y = searchStartY; y <= searchEndY; y++)
+                if (a.active)
                 {
-                    int pointIndex = grid[x, y] - 1;
-                    if (pointIndex != -1)
+                    // Find the closest growth node. If it's close enough to be in kill radius, kill this attractor.
+                    // If it's only in influence radius, affect that growth node's grow direction
+                    // If there are no nearby nodes, do nothing.
+
+                    (Grower, bool) info = a.GetInfluencedNode();
+                    Grower g = info.Item1;
+                    bool dying = info.Item2;
+                    if (g != null)
                     {
-                        float sqrDst = (candidate - points[pointIndex]).sqrMagnitude;
-                        if (sqrDst < radius * radius)
+                        Vector2 pushDir = new Vector2(a.pos.x - g.pos.x, a.pos.y - g.pos.y).normalized;
+                        g.growthDir += pushDir;
+                        g.numInfluencers++;
+
+                        if (!g.active)
                         {
-                            return false;
+                            g.active = true;
+                            influencedNodes.Add(g);
                         }
+                    }
+                    if (dying)
+                    {
+                        nodes[(int)a.pos.x, (int)a.pos.y] = null;
+                        a.active = false;
+                        g.numKills++;
                     }
                 }
             }
-            return true;
+
+            // Now we can iterate over the growers, and have them move in their grow directions
+            foreach (Grower g in influencedNodes)
+            {
+                // Create new growth node in direction of growth direction
+                //ANNOYING: round will not always round up when result is 0.5, so we gotta do this
+                Vector2 finalGrowDir = new Vector2(g.growthDir.x / g.numInfluencers, g.growthDir.y / g.numInfluencers).normalized;
+                int x = Mathf.RoundToInt(finalGrowDir.x);
+                int y = Mathf.RoundToInt(finalGrowDir.y);
+                if (g.growthDir.x / g.numInfluencers == 0.5)
+                {
+                    x = 1;
+                }
+                if (g.growthDir.x / g.numInfluencers == -0.5)
+                {
+                    x = -1;
+                }
+                if (g.growthDir.y / g.numInfluencers == 0.5)
+                {
+                    y = 1;
+                }
+                if (g.growthDir.y / g.numInfluencers == -0.5)
+                {
+                    y = -1;
+                }
+                if (x == 0 && y == 0)
+                {
+                    Debug.Log("PROBLEM");
+                    Debug.Log(g.growthDir);
+                    Debug.Log(g.numInfluencers);
+                    Debug.Log(finalGrowDir);
+                }
+
+                Vector2 newGrowthPos = new Vector2(g.pos.x + x, g.pos.y + y);
+                if (nodes[(int)newGrowthPos.x, (int)newGrowthPos.y] != null)
+                {
+                    g.growthDir = Vector2.zero;
+                    g.numInfluencers = 0;
+                    g.active = false;
+                }
+                else
+                {
+                    Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), nodes, g);
+                    growers.Add(leaf);
+                    nodes[(int)leaf.pos.x, (int)leaf.pos.y] = leaf;
+
+                    g.growthDir = Vector2.zero;
+                    g.numInfluencers = 0;
+                    g.active = false;
+                }
+            }
         }
-        return false;
+        Debug.Log("Done making path");
+        
+    }
+
+    // temporary path printer
+    private void PrintPath()
+    {
+        string[,] tempPath = new string[resolution, resolution];
+        for(int i = 0; i < resolution; i++)
+        {
+            for(int j = 0; j < resolution; j++)
+            {
+                if (nodes[j,i] != null)
+                {
+                    if(nodes[j, i].GetType() == typeof(Grower))
+                    {
+                        tempPath[j, i] = "G";
+                    }
+                    else if(nodes[j, i].GetType() == typeof(Attractor))
+                    {
+                        tempPath[j, i] = "A";
+                    }
+                }
+                else
+                {
+                    tempPath[j, i] = "0";
+                }
+            }
+        }
+
+        for (int i = 0; i < resolution; i++)
+        {
+            string line = "";
+            for (int j = 0; j < resolution; j++)
+            {
+                line += tempPath[j, i].ToString().PadLeft(4) + " ";
+            }
+            Debug.Log(line);
+        }
+    }
+
+    private void WritePath()
+    {
+        string[,] tempPath = new string[resolution, resolution];
+        for (int i = 0; i < resolution; i++)
+        {
+            for (int j = 0; j < resolution; j++)
+            {
+                if (nodes[j, i] != null)
+                {
+                    if (nodes[j, i].GetType() == typeof(Grower))
+                    {
+                        tempPath[j, i] = "G";
+                    }
+                    else if (nodes[j, i].GetType() == typeof(Attractor))
+                    {
+                        tempPath[j, i] = "A";
+                    }
+                }
+                else
+                {
+                    tempPath[j, i] = "0";
+                }
+            }
+        }
+        string finalOutput = "";
+        string filePath = "C:\\Users\\khadd\\UnityProjects\\VineGrowthTest\\Growth5.txt";
+        StreamWriter writer = new StreamWriter(filePath, true);
+        for (int i = 0; i < resolution; i++)
+        {
+            string line = "";
+            for (int j = 0; j < resolution; j++)
+            {
+                line += tempPath[j, i].ToString().PadLeft(4);
+            }
+            writer.WriteLine(line);
+        }
+        writer.Close();
+        Debug.Log("Path Written");
     }
 }
