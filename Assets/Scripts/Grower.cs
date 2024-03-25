@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Grower : Node
 {
-    float influencable, thickness;
+    float influencable;
+    public float thickness;
     public Grower parent, child;
     public Vector2 growthDir;
     public int numKills, numInfluencers;
@@ -15,5 +16,23 @@ public class Grower : Node
         numInfluencers = 0;
         this.parent = parent;
         growthDir = Vector2.zero;
+    }
+
+    public void ThicknessChange()
+    {
+        if (thickness >= 2500)
+        {
+            return;
+        }
+        if (parent == null)
+        {
+            thickness += 1;
+            return;
+        }
+        else
+        {
+            thickness += 1;
+            parent.ThicknessChange();
+        }
     }
 }

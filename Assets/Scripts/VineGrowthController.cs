@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(MakePath))]
+[RequireComponent(typeof(MakePathContinuous))]
 public class VineGrowthController : MonoBehaviour
 {
     [SerializeField]
@@ -15,6 +15,7 @@ public class VineGrowthController : MonoBehaviour
     private Texture leafTexture;
 
     private MakePath makePath;
+    private MakePathContinuous makePathContinuous;
     private DrawVine drawVine;
     private Material baseObjectMat;
     private RenderTexture vineTexture; //final vine texture to be used on base object
@@ -22,6 +23,7 @@ public class VineGrowthController : MonoBehaviour
     void Start()
     {
         makePath = this.GetComponent<MakePath>();
+        makePathContinuous = this.GetComponent<MakePathContinuous>();
         drawVine = new DrawVine(1024, 1024);
         baseObjectMat = baseObject.material;
     }
@@ -41,7 +43,7 @@ public class VineGrowthController : MonoBehaviour
     void CreateVines(bool animate)
     {
         //create path of vines
-        makePath.CreateFullPath();
+        makePathContinuous.CreatePathFull();
 
         if (animate)
         {
@@ -49,7 +51,7 @@ public class VineGrowthController : MonoBehaviour
             StartCoroutine(drawVine.AnimateVines(0.0001f, new Color(114, 92, 66), drawVineShader, makePath.Growers, makePath.Resolution));
         }
         else
-            vineTexture = drawVine.DrawToRenderTexture(true, new Color(114.0f/255.0f, 92.0f/255.0f, 66.0f/255.0f), drawVineShader, makePath.Growers, makePath.Resolution, drawLeafShader, leafTexture);
+            vineTexture = drawVine.DrawToRenderTexture(false, new Color(114.0f/255.0f, 92.0f/255.0f, 66.0f/255.0f), drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture);
 
         baseObjectMat.SetTexture("_VineTex", vineTexture);
     }

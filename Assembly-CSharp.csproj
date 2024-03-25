@@ -63,8 +63,8 @@
     <Compile Include="Assets\Scripts\VineGrowthController.cs" />
     <Compile Include="Assets\Scripts\MakePath.cs" />
     <Compile Include="Assets\Scripts\Node.cs" />
+    <Compile Include="Assets\Scripts\MakePathContinuous.cs" />
     <Compile Include="Assets\Scripts\DrawVine.cs" />
-    <Compile Include="Assets\Scripts\Growth.cs" />
     <Compile Include="Assets\Scripts\Attractor.cs" />
     <Compile Include="Assets\Scripts\Grower.cs" />
   </ItemGroup>

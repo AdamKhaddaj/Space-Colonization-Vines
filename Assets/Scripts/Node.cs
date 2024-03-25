@@ -7,7 +7,7 @@ public abstract class Node
     public Vector2 pos;
     public Node[,] nodes; // reference to node array 
     public bool active;
-    
+
     public Node(Vector2 pos, Node[,] nodes)
     {
         this.pos = pos;

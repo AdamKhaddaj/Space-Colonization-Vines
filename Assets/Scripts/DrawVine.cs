@@ -26,6 +26,18 @@ public class DrawVine
         drawVineMaterial.SetVector("_Color", circleColor);
         drawLeafMaterial.SetTexture("_LeafTex", leafTexture);
 
+        float maxThickness = 1000;
+        for (int i = 0; i < nodes.Count; i++)
+        {
+            Grower g = (Grower)nodes[i];
+            if (g.parent == null)
+            {
+                maxThickness = g.thickness;
+            }
+        }
+
+        drawVineMaterial.SetFloat("_MaxThickness", maxThickness);
+
         for (int i = 0; i < nodes.Count; i++)
         {
             Grower cur = (Grower)nodes[i];
@@ -38,7 +50,7 @@ public class DrawVine
 
             drawVineMaterial.SetVector("_StartPosition", new Vector4(startPos.x, startPos.y, 0.0f, 0.0f));
             drawVineMaterial.SetVector("_EndPosition", new Vector4(endPos.x, endPos.y, 0.0f, 0.0f));
-            drawVineMaterial.SetFloat("_Thickness", 0.003f);
+            drawVineMaterial.SetFloat("_Thickness", cur.thickness);
 
             Graphics.Blit(result, temp);
             Graphics.Blit(temp, result, drawVineMaterial);

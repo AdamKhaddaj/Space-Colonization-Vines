@@ -12,7 +12,7 @@ public class MakePath : MonoBehaviour
 {
 
     // will determine how large gaps between uv coord placements of nodes are
-    int resolution = 100; //0.01 coord gaps
+    int resolution = 200; //0.01 coord gaps
 
     int numAttractors = 6;
     //int tempNumAttractors = 6;
@@ -86,7 +86,7 @@ public class MakePath : MonoBehaviour
                     int bruh = UnityEngine.Random.Range(1, 4);
                     if(bruh == 1)
                     {
-                        Attractor a = new Attractor(new Vector2(j, i), nodes, 5, 2);
+                        Attractor a = new Attractor(new Vector2(j, i), nodes, 5, 2, null);
                         attractors.Add(a);
                         nodes[j, i] = a;
                     }
@@ -187,7 +187,7 @@ public class MakePath : MonoBehaviour
     public void CreateFullPath()
     {
         int growing = 0;
-        while (growing < 100) //TEMPORRARY SET 
+        while (growing < 200) //TEMPORRARY SET 
         {
             growing++;
             List<Grower> influencedNodes = new List<Grower>();

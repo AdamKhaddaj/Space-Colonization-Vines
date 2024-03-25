@@ -7,6 +7,7 @@ Shader "Unlit/DrawLine"
         _EndPosition("End Position", Vector) = (0.0, 0.0, 0.0)
         _Color("Color", Color) = (1.0, 0.0, 0.0, 0.0)
         _Thickness("Line Thickness", float) = 0.005
+        _MaxThickness("Max Thickness", float) = 100
     }
     SubShader
     {
@@ -40,6 +41,12 @@ Shader "Unlit/DrawLine"
             float2 _EndPosition;
             fixed4 _Color;
             float _Thickness;
+            float _MaxThickness;
+
+            float remap(float val, float min1, float max1, float min2, float max2)
+            {
+                return min2 + (val - min1) * (max2 - min2) / (max1 - min1);
+            }
 
             v2f vert (appdata v)
             {
@@ -60,10 +67,13 @@ Shader "Unlit/DrawLine"
                 startPos.y = 1 - startPos.y;
                 endPos.y = 1 - endPos.y;
 
+                float thickness = remap(_Thickness, 1, _MaxThickness, 0.002, 0.007);
+
+
                 float2 g = endPos - startPos;
                 float2 h = i.uv - startPos;
                 float d = length(h - g * clamp(dot(g, h) / dot(g, g), 0.0, 1.0));
-                float draw = smoothstep(_Thickness, 0.5 * _Thickness, d);
+                float draw = smoothstep(thickness, 0.5 * thickness, d);
 
                 fixed4 drawColor = (_Color * draw);
 
