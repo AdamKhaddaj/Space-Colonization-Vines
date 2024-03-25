@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\DrawLine.shader" />
+    <None Include="Assets\Shaders\DrawLeaf.shader" />
     <None Include="Assets\Shaders\DrawCircle.shader" />
     <None Include="Assets\Shaders\TwoDiffuseTextures.shader" />
   </ItemGroup>

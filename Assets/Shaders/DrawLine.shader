@@ -67,7 +67,10 @@ Shader "Unlit/DrawLine"
 
                 fixed4 drawColor = (_Color * draw);
 
-                return saturate(col + drawColor);
+                if (col.r != 0.0 && col.g != 0.0 && col.b != 0.0 && col.a != 0.0)
+                    drawColor = col;
+
+                return drawColor;
             }
             ENDCG
         }

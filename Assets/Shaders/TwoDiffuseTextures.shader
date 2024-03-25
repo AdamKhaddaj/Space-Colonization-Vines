@@ -41,7 +41,7 @@ Shader "Custom/TwoDiffuseTextures"
             fixed4 baseColor = tex2D(_MainTex, IN.uv_MainTex);
             fixed4 vineColor = tex2D(_VineTex, IN.uv_MainTex);
 
-            // Albedo comes from a texture tinted by color
+            //lerp between base color and vine color
             fixed4 c = lerp(baseColor, vineColor, vineColor.a);
             o.Albedo = c.rgb;
             // Metallic and smoothness come from slider variables

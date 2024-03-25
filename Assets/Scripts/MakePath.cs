@@ -12,7 +12,7 @@ public class MakePath : MonoBehaviour
 {
 
     // will determine how large gaps between uv coord placements of nodes are
-    int resolution = 200; //0.01 coord gaps
+    int resolution = 100; //0.01 coord gaps
 
     int numAttractors = 6;
     //int tempNumAttractors = 6;
@@ -187,7 +187,7 @@ public class MakePath : MonoBehaviour
     public void CreateFullPath()
     {
         int growing = 0;
-        while (growing < 200) //TEMPORRARY SET 
+        while (growing < 100) //TEMPORRARY SET 
         {
             growing++;
             List<Grower> influencedNodes = new List<Grower>();
