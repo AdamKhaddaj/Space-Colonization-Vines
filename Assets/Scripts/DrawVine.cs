@@ -64,7 +64,7 @@ public class DrawVine
 
         //add leaf every n nodes
         //change it so it is within the same vine
-        int leafDensity = 1;
+        int leafDensity = 5;
         int curInterval = leafDensity;
 
         if (drawLeaves)
@@ -81,7 +81,7 @@ public class DrawVine
                     drawLeafMaterial.SetFloat("_Rotation", Random.Range(-25.0f, 25.0f));
 
                     float scaleOff = Random.Range(-5.0f, 5.0f);
-                    drawLeafMaterial.SetVector("_Scale", new Vector4(30.0f + scaleOff, 30.0f + scaleOff, 0.0f, 0.0f));
+                    drawLeafMaterial.SetVector("_Scale", new Vector4(45.0f, 45.0f, 0.0f, 0.0f));
 
                     Graphics.Blit(result, temp);
                     Graphics.Blit(temp, result, drawLeafMaterial);

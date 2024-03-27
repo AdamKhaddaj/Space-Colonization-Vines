@@ -4,7 +4,7 @@ Shader "Unlit/DrawLeaf"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _LeafTex("Leaf Texture", 2D) = "black" {}
-        _Position("Leaf Position", Vector) = (0.5, 0.5, 0.0, 0.0)
+        _Position("Leaf Position", Vector) = (0.0, 0.0, 0.0, 0.0)
         _Scale("Leaf Scale", Vector) = (0.05, 0.05, 0.0, 0.0)
         _Rotation("Leaf Rotation", float) = 25.0
     }
@@ -49,38 +49,7 @@ Shader "Unlit/DrawLeaf"
                 return o;
             }
 
-            float2 rotate(float2 position, float angleInDegrees)
-            {
-                float PI = 3.14159265;
-
-                //convert degrees to radians
-                float angleInRad = angleInDegrees * PI / 180;
-
-                //create rotation matrix
-                float2x2 rotMat = float2x2 (
-                    cos(angleInRad), -sin(angleInRad),
-                    sin(angleInRad), cos(angleInRad)
-                    );
-
-                //rotate and return position using rotation matrix
-                return mul(rotMat, position);
-            }
-
-            float2 scale(float2 position, float3 scale)
-            {
-
-                //create scale matrix
-                float3x3 scaleMat = float3x3 (
-                    scale.x, 0.0, 0.0,
-                    0.0, scale.y, 0.0,
-                    0.0, 0.0, 1.0
-                    );
-
-                //scale and return position
-                return mul(scaleMat, fixed3(position, 1.0)).xy;
-            }
-
-            float2 translate(float2 position, float3 translation)
+            float2 translate(float2 position, float2 translation)
             {
 
                 //create trans matrix
@@ -94,13 +63,58 @@ Shader "Unlit/DrawLeaf"
                 return mul(transMat, fixed3(position, 1.0)).xy;
             }
 
+            float2 rotate(float2 position, float angleInDegrees)
+            {
+                float PI = 3.14159265;
+
+                //convert degrees to radians
+                float angleInRad = angleInDegrees * PI / 180;
+
+                //create rotation matrix
+                float2x2 rotMat = float2x2 (
+                    cos(angleInRad), -sin(angleInRad),
+                    sin(angleInRad), cos(angleInRad)
+                    );
+
+                //rotate and return position
+                //translating so rotation is around origin at center of the image
+                float2 res = translate(position, float2(-0.5, -0.5));
+                res = mul(rotMat, res);
+                res = translate(res, float2(0.5, 0.5));
+
+                return res;
+            }
+
+            float2 scale(float2 position, float2 scale)
+            {
+
+                //create scale matrix
+                float3x3 scaleMat = float3x3 (
+                    scale.x, 0.0, 0.0,
+                    0.0, scale.y, 0.0,
+                    0.0, 0.0, 1.0
+                    );
+
+                //scale
+                float2 res = translate(position, float2(-0.5, -0.5));
+                res = mul(scaleMat, res);
+                res = translate(res, float2(0.5, 0.5));
+
+                return res;
+            }
+
             fixed4 frag(v2f i) : SV_Target
             {
-                _Position.y = 1.0 - _Position.y;
+ 
+                fixed2 pos;
+            
+                _Position.y = 1 - _Position.y;
 
-                fixed2 pos = scale(i.uv, fixed3(_Scale.x, _Scale.y, 1.0));
+                _Position.xy -= 0.5;
+                //transform position of leaf to be placed
                 pos = rotate(pos, _Rotation);
-                pos = translate(pos, fixed3(_Position.x * -_Scale.x, _Position.y * -_Scale.y, 1.0));
+                pos = scale(i.uv, fixed2(_Scale.x, _Scale.y));
+                pos = translate(pos, _Position.xy * -_Scale);
 
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);

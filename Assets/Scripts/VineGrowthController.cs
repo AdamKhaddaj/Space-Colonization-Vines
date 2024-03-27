@@ -63,7 +63,7 @@ public class VineGrowthController : MonoBehaviour
         {
             drawVine.ClearTexture();
 
-            vineTexture = drawVine.DrawToRenderTexture(false, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture);
+            vineTexture = drawVine.DrawToRenderTexture(true, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture);
         }
 
         baseObjectMat.SetTexture("_VineTex", vineTexture);
