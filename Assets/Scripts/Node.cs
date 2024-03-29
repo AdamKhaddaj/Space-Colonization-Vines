@@ -7,10 +7,12 @@ public abstract class Node
     public Vector2 pos;
     public Node[,] nodes; // reference to node array 
     public bool active;
+    public int tag;
 
-    public Node(Vector2 pos, Node[,] nodes)
+    public Node(Vector2 pos, Node[,] nodes, int tag = 1)
     {
         this.pos = pos;
         this.nodes = nodes;
+        this.tag = tag;
     }
 }

@@ -70,7 +70,7 @@ public class MakePath : MonoBehaviour
 
     private void PlaceRootNodes() // for now, just start with only one root node in bottom left
     {
-        Grower g = new Grower(new Vector2(0, resolution-1), nodes, null);
+        Grower g = new Grower(new Vector2(0, resolution-1), nodes, null, 1, 0);
         nodes[0, resolution-1] = g;
         growers.Add(g);
     }
@@ -86,7 +86,7 @@ public class MakePath : MonoBehaviour
                     int bruh = UnityEngine.Random.Range(1, 4);
                     if(bruh == 1)
                     {
-                        Attractor a = new Attractor(new Vector2(j, i), nodes, 5, 2, null);
+                        Attractor a = new Attractor(new Vector2(j, i), nodes, 5, 2, null, 1,1);
                         attractors.Add(a);
                         nodes[j, i] = a;
                     }
@@ -171,7 +171,7 @@ public class MakePath : MonoBehaviour
             }
             else
             {
-                Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), nodes, g);
+                Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), nodes, g, 1, 0);
                 growers.Add(leaf);
                 nodes[(int)leaf.pos.x, (int)leaf.pos.y] = leaf;
 
@@ -264,7 +264,7 @@ public class MakePath : MonoBehaviour
                 }
                 else
                 {
-                    Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), nodes, g);
+                    Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), nodes, g, 1, 0);
                     growers.Add(leaf);
                     nodes[(int)leaf.pos.x, (int)leaf.pos.y] = leaf;
 

@@ -9,13 +9,16 @@ public class Grower : Node
     public Grower parent, child;
     public Vector2 growthDir;
     public int numKills, numInfluencers;
+    public int depth;
 
-    public Grower(Vector2 pos, Node[,] nodes, Grower parent) : base(pos, nodes)
+    public Grower(Vector2 pos, Node[,] nodes, Grower parent, int tag, int depth) : base(pos, nodes)
     {
         active = false;
         numInfluencers = 0;
         this.parent = parent;
         growthDir = Vector2.zero;
+        this.tag = tag;
+        this.depth = depth;
     }
 
     public void ThicknessChange()

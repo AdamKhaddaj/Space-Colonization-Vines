@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Attractor : Node
@@ -8,8 +9,9 @@ public class Attractor : Node
     int resolution; // reference to resolution of full nodes array
     public bool dying = false;
     MakePathContinuous manager;
+    int tag2;
 
-    public Attractor(Vector2 pos, Node[,] nodes, int influenceRadius, int killRadius, MakePathContinuous manager) : base(pos, nodes)
+    public Attractor(Vector2 pos, Node[,] nodes, int influenceRadius, int killRadius, MakePathContinuous manager, int tag , int tag2) : base(pos, nodes)
     {
         this.influenceRadius = influenceRadius;
         this.killRadius = killRadius;
@@ -23,6 +25,8 @@ public class Attractor : Node
         }
         active = true;
         this.manager = manager;
+        this.tag = tag;
+        this.tag2 = tag2;
     }
 
     public void SetInfluenceRadius(int r)
@@ -89,8 +93,6 @@ public class Attractor : Node
 
     public (Grower, bool) GetInfluencedNodeContinuous()
     {
-        float x = base.pos[0];
-        float y = base.pos[1];
         Grower closestNode = null;
         float closestDist = Mathf.Infinity;
         List<Node> growers = manager.GetGrowers();
@@ -99,27 +101,34 @@ public class Attractor : Node
         for (int i = 0; i < growers.Count; i++)
         {
             Grower g = (Grower)growers[i];
-            float dist = Vector2.Distance(pos, g.pos);
-            if (dist <= influenceRadius)
+            if(g.child == null)
             {
-                if (dist <= killRadius)
+                if (g.tag == tag || g.tag == tag2)
                 {
-                    dying = true;
-                    if (dist < closestDist)
+                    float dist = Vector2.Distance(pos, g.pos);
+                    if (dist <= influenceRadius)
                     {
-                        closestDist = dist;
-                        closestNode = g;
-                    }
-                }
-                else
-                {
-                    if (dist < closestDist)
-                    {
-                        closestDist = dist;
-                        closestNode = g;
+                        if (dist <= killRadius)
+                        {
+                            dying = true;
+                            if (dist < closestDist)
+                            {
+                                closestDist = dist;
+                                closestNode = g;
+                            }
+                        }
+                        else
+                        {
+                            if (dist < closestDist)
+                            {
+                                closestDist = dist;
+                                closestNode = g;
+                            }
+                        }
                     }
                 }
             }
+            
         }
         return (closestNode, dying);
     }
