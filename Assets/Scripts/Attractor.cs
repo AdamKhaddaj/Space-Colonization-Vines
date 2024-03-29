@@ -101,33 +101,32 @@ public class Attractor : Node
         for (int i = 0; i < growers.Count; i++)
         {
             Grower g = (Grower)growers[i];
-            if(g.child == null)
+
+            if (g.tag == tag || g.tag == tag2)
             {
-                if (g.tag == tag || g.tag == tag2)
+                float dist = Vector2.Distance(pos, g.pos);
+                if (dist <= influenceRadius)
                 {
-                    float dist = Vector2.Distance(pos, g.pos);
-                    if (dist <= influenceRadius)
+                    if (dist <= killRadius)
                     {
-                        if (dist <= killRadius)
+                        dying = true;
+                        if (dist < closestDist)
                         {
-                            dying = true;
-                            if (dist < closestDist)
-                            {
-                                closestDist = dist;
-                                closestNode = g;
-                            }
+                            closestDist = dist;
+                            closestNode = g;
                         }
-                        else
+                    }
+                    else
+                    {
+                        if (dist < closestDist)
                         {
-                            if (dist < closestDist)
-                            {
-                                closestDist = dist;
-                                closestNode = g;
-                            }
+                            closestDist = dist;
+                            closestNode = g;
                         }
                     }
                 }
             }
+            
             
         }
         return (closestNode, dying);
