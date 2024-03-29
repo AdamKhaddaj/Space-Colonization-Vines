@@ -57,7 +57,7 @@ public class VineGrowthController : MonoBehaviour
             drawVine.ClearTexture();
 
             vineTexture = drawVine.Result;
-            StartCoroutine(drawVine.AnimateVines(0.001f, true, true, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture));
+            StartCoroutine(drawVine.DrawToRenderTextureAnim(true, true, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture));
         }
         else
         {

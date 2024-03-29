@@ -7,6 +7,8 @@ Shader "Unlit/DrawLeaf"
         _Position("Leaf Position", Vector) = (0.0, 0.0, 0.0, 0.0)
         _Scale("Leaf Scale", Vector) = (0.05, 0.05, 0.0, 0.0)
         _Rotation("Leaf Rotation", float) = 25.0
+        _PositionOffset("Leaf Position Offset", float) = 0.0
+
     }
     SubShader
     {
@@ -38,6 +40,7 @@ Shader "Unlit/DrawLeaf"
             float4 _MainTex_ST;
 
             fixed4 _Position;
+            float _PositionOffset;
             fixed4 _Scale;
             float _Rotation;
 
@@ -110,11 +113,14 @@ Shader "Unlit/DrawLeaf"
             
                 _Position.y = 1 - _Position.y;
 
+                _PositionOffset -= 0.5;
                 _Position.xy -= 0.5;
+                
                 //transform position of leaf to be placed
-                pos = rotate(pos, _Rotation);
                 pos = scale(i.uv, fixed2(_Scale.x, _Scale.y));
                 pos = translate(pos, _Position.xy * -_Scale);
+                pos = rotate(pos, _Rotation);
+                pos = translate(pos, fixed2(0.0, 0.5 + _PositionOffset) * -_Scale);
 
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);

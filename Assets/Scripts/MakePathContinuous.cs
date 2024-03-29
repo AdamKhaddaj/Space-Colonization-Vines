@@ -144,6 +144,7 @@ public class MakePathContinuous : MonoBehaviour
                 // NOTE!!! this currently does not check for overlap
 
                 Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), null, g);
+                leaf.parent.child = leaf;
                 growers.Add(leaf);
                 g.ThicknessChange();
 
