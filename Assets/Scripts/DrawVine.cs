@@ -22,9 +22,10 @@ public class DrawVine
         result.Release();
     }
 
-    public RenderTexture DrawToRenderTexture(bool drawLeaves, bool leavesAtRoot, Color circleColor, Shader drawVineShader, List<Node> nodes, int nodeGridSize, Shader drawLeafShader, Texture leafTexture, int leafDensity = 5, float leafGravityScale = 0.0f)
+    public RenderTexture DrawToRenderTexture(bool drawLeaves, bool leavesAtRoot, Color circleColor, Shader drawVineShader, List<Node> nodes, int nodeGridSize, Shader drawLeafShader, Texture leafTexture, int leafDensity = 5, float leafGravityScale = 0.0f, float leafScale = 30.0f, float randomLeafScaleOffset = 0.0f, float randomLeafRotOffset = 0.0f)
     {
         float maxThickness = 1000;
+        float minThickness = float.MaxValue;
 
         RenderTexture temp = RenderTexture.GetTemporary(result.width, result.height, 0, result.format);
         Material drawVineMaterial = new Material(drawVineShader);
@@ -40,6 +41,9 @@ public class DrawVine
             {
                 maxThickness = g.thickness;
             }
+
+            if (g.thickness < minThickness)
+                minThickness = g.thickness;
         }
 
         drawVineMaterial.SetFloat("_MaxThickness", maxThickness);
@@ -80,19 +84,21 @@ public class DrawVine
 
                 bool checkChildNode = cur.child == null;
 
+                float thicknessRatio = 1.0f - ((cur.thickness - minThickness) / (maxThickness - minThickness));
+
                 if (!leavesAtRoot)
                     checkChildNode = true;
 
-                if (checkChildNode)
+                if (checkChildNode && curInterval <= 0)
                 {
-                    float rotation = CalculateLeafRotation(cur, true, true, leafGravityScale);
+                    float rotation = CalculateLeafRotation(cur, true, true, leafGravityScale, randomLeafRotOffset);
 
                     drawLeafMaterial.SetVector("_Position", new Vector4(pos.x, pos.y, 0.0f, 0.0f));
                     drawLeafMaterial.SetFloat("_Rotation", rotation);
                     drawLeafMaterial.SetFloat("_PositionOffset", leafOffset);
 
-                    float scaleOff = Random.Range(-5.0f, 5.0f);
-                    drawLeafMaterial.SetVector("_Scale", new Vector4(30.0f + scaleOff, 30.0f + scaleOff, 0.0f, 0.0f));
+                    float scaleOff = Random.Range(-randomLeafScaleOffset, randomLeafScaleOffset);
+                    drawLeafMaterial.SetVector("_Scale", new Vector4(thicknessRatio * (leafScale + scaleOff), thicknessRatio * (leafScale + scaleOff), 0.0f, 0.0f));
 
                     Graphics.Blit(result, temp);
                     Graphics.Blit(temp, result, drawLeafMaterial);
@@ -236,7 +242,7 @@ public class DrawVine
     /*
      * returns rotation of leaf that is perpendicular to the vine it is growing on
      */
-    private float CalculateLeafRotation(Grower node, bool addRotOffset, bool addGravity = false, float gravityScale = 0.0f)
+    private float CalculateLeafRotation(Grower node, bool addRotOffset, bool addGravity = false, float gravityScale = 0.0f, float randomLeafRotOffset = 0.0f)
     {
         int segmentLength = 5;
 
@@ -301,7 +307,7 @@ public class DrawVine
             angle *= -1;
 
         if(addRotOffset)
-            angle += Random.Range(-30.0f, 30.0f);
+            angle += Random.Range(-randomLeafRotOffset, randomLeafRotOffset);
         
         return angle;
     }

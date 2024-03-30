@@ -5,6 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(MakePathContinuous))]
 public class VineGrowthController : MonoBehaviour
 {
+    [Header("General Settings")]
     [SerializeField]
     private Color vineColor = new Color(114.0f / 255.0f, 92.0f / 255.0f, 66.0f / 255.0f);
     [SerializeField]
@@ -13,10 +14,26 @@ public class VineGrowthController : MonoBehaviour
     private Shader drawVineShader; //shader to use to draw shape for grower nodes
     [SerializeField]
     private Shader drawLeafShader; //shader to use to draw shape for grower nodes
+
+    [Header("Leaf Settings")]
+    [SerializeField]
+    private bool drawLeaves = true;
+    [SerializeField]
+    private bool drawLeavesAtEndsOnly = true;
     [SerializeField]
     private Texture leafTexture;
     [Range(0.0f, 1.0f)]
-    public float leafGravityScale = 0.0f;
+    [SerializeField]
+    private float leafGravityScale = 0.0f;
+    [Range(2, 100)]
+    [SerializeField]
+    private int leafDensity = 0;
+    [SerializeField]
+    private float leafScale = 30.0f;
+    [SerializeField]
+    private float randomLeafRotOffset = 0.0f;
+    [SerializeField]
+    private float randomLeafScaleOffset = 0.0f;
 
     private MakePath makePath;
     private MakePathContinuous makePathContinuous;
@@ -71,7 +88,7 @@ public class VineGrowthController : MonoBehaviour
         {
             drawVine.ClearTexture();
 
-            vineTexture = drawVine.DrawToRenderTexture(true, true, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture, 5, leafGravityScale);
+            vineTexture = drawVine.DrawToRenderTexture(drawLeaves, drawLeavesAtEndsOnly, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture, leafDensity, leafGravityScale, leafScale, randomLeafScaleOffset, randomLeafRotOffset);
         }
 
         baseObjectMat.SetTexture("_VineTex", vineTexture);
