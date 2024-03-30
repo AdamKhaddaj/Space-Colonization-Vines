@@ -86,6 +86,8 @@ public class DrawVine
 
                 float thicknessRatio = 1.0f - ((cur.thickness - minThickness) / (maxThickness - minThickness));
 
+                thicknessRatio = Mathf.Clamp(thicknessRatio, 0.75f, 1.0f);
+
                 if (!leavesAtRoot)
                     checkChildNode = true;
 
