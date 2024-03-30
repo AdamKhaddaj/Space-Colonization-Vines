@@ -265,6 +265,7 @@ MonoBehaviour:
   drawVineShader: {fileID: 4800000, guid: 429f565a77026da4daaaa424f55af9f0, type: 3}
   drawLeafShader: {fileID: 4800000, guid: e87a1de3cdc9a5b42a8ee4ca1a3ff863, type: 3}
   leafTexture: {fileID: 2800000, guid: 569cb9bc7ca52b44abddf88303273184, type: 3}
+  leafGravityScale: 0
 --- !u!114 &644976614
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -496,7 +497,7 @@ Transform:
   m_GameObject: {fileID: 1006332202}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -8.27}
+  m_LocalPosition: {x: 0, y: 0, z: -8.68}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

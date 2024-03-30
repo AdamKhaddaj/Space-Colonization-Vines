@@ -15,12 +15,15 @@ public class VineGrowthController : MonoBehaviour
     private Shader drawLeafShader; //shader to use to draw shape for grower nodes
     [SerializeField]
     private Texture leafTexture;
-    
+    [Range(0.0f, 1.0f)]
+    public float leafGravityScale = 0.0f;
+
     private MakePath makePath;
     private MakePathContinuous makePathContinuous;
     private DrawVine drawVine;
     private Material baseObjectMat;
     private RenderTexture vineTexture; //final vine texture to be used on base object
+    private bool vineGenerated;
 
     void Start()
     {
@@ -28,30 +31,35 @@ public class VineGrowthController : MonoBehaviour
         makePathContinuous = this.GetComponent<MakePathContinuous>();
         drawVine = new DrawVine(1024, 1024);
         baseObjectMat = baseObject.material;
+        vineGenerated = false;
     }
 
     void Update()
     {
+        if (Input.GetKeyDown("g")) //generate vines
+        {
+            //create path of vines
+            makePathContinuous.CreatePathFull();
+            vineGenerated = true;
+        }
+
         if (Input.GetKeyDown("d")) //draw
         {
-            CreateVines(false);
+            DrawVines(false);
         }
         else if(Input.GetKeyDown("a")) //animate
         {
-            CreateVines(true);
+            DrawVines(true);
         }
+
     }
 
 
     /// <summary>
     /// Method generates vines, draws it to a texture and assigns the texture to the base object
     /// </summary>
-    void CreateVines(bool animate)
+    void DrawVines(bool animate)
     {
-
-        //create path of vines
-        makePathContinuous.CreatePathFull();
-
         if (animate)
         {
             drawVine.ClearTexture();
@@ -63,7 +71,7 @@ public class VineGrowthController : MonoBehaviour
         {
             drawVine.ClearTexture();
 
-            vineTexture = drawVine.DrawToRenderTexture(true, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture);
+            vineTexture = drawVine.DrawToRenderTexture(true, true, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture, 5, leafGravityScale);
         }
 
         baseObjectMat.SetTexture("_VineTex", vineTexture);

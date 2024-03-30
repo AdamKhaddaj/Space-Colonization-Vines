@@ -22,10 +22,9 @@ public class DrawVine
         result.Release();
     }
 
-    public RenderTexture DrawToRenderTexture(bool drawLeaves, Color circleColor, Shader drawVineShader, List<Node> nodes, int nodeGridSize, Shader drawLeafShader, Texture leafTexture)
+    public RenderTexture DrawToRenderTexture(bool drawLeaves, bool leavesAtRoot, Color circleColor, Shader drawVineShader, List<Node> nodes, int nodeGridSize, Shader drawLeafShader, Texture leafTexture, int leafDensity = 5, float leafGravityScale = 0.0f)
     {
         float maxThickness = 1000;
-        int leafDensity = 5;
 
         RenderTexture temp = RenderTexture.GetTemporary(result.width, result.height, 0, result.format);
         Material drawVineMaterial = new Material(drawVineShader);
@@ -79,9 +78,14 @@ public class DrawVine
                 //offset used to have origin of leaf at tip of root instead of center of leaf texture
                 float leafOffset = -0.01f;
 
-                if (cur.child == null)
+                bool checkChildNode = cur.child == null;
+
+                if (!leavesAtRoot)
+                    checkChildNode = true;
+
+                if (checkChildNode)
                 {
-                    float rotation = CalculateLeafRotation(cur, true);
+                    float rotation = CalculateLeafRotation(cur, true, true, leafGravityScale);
 
                     drawLeafMaterial.SetVector("_Position", new Vector4(pos.x, pos.y, 0.0f, 0.0f));
                     drawLeafMaterial.SetFloat("_Rotation", rotation);
@@ -97,7 +101,8 @@ public class DrawVine
                 }
                 else
                     curInterval--;
-            }   
+
+            }
         }
 
         RenderTexture.ReleaseTemporary(temp);
@@ -231,14 +236,14 @@ public class DrawVine
     /*
      * returns rotation of leaf that is perpendicular to the vine it is growing on
      */
-    private float CalculateLeafRotation(Grower node, bool addRotOffset, bool addGravity = false, float gravityScale = 0.1f)
+    private float CalculateLeafRotation(Grower node, bool addRotOffset, bool addGravity = false, float gravityScale = 0.0f)
     {
         int segmentLength = 5;
 
         Vector2 startPoint;
         Vector2 endPoint;
 
-        Vector2 gravityVec = new Vector2(0.0f, -5.0f);
+        Vector2 gravityVec = new Vector2(0.0f, -2.5f);
 
         gravityVec *= gravityScale;
 
@@ -279,25 +284,14 @@ public class DrawVine
         if (segmentDir.magnitude == 0.0f)
             return 0.0f;
 
-        //segmentDir = -segmentDir;
-
         segmentDir.Normalize();
-
-        /*
-        Vector2 perpSegmentDir = new Vector2(-segmentDir.y, segmentDir.x);
-        
-        if (Random.Range(0, 2) == 1)
-            perpSegmentDir = new Vector2(segmentDir.x, -segmentDir.y);
-
-        perpSegmentDir.Normalize();
 
         if (addGravity)
         {
-            perpSegmentDir = (perpSegmentDir + gravityVec) / Vector2.Distance(new Vector2(0.0f, 0.0f), perpSegmentDir + gravityVec);
+            segmentDir = (segmentDir + gravityVec) / Vector2.Distance(new Vector2(0.0f, 0.0f), segmentDir + gravityVec);
 
-            perpSegmentDir.Normalize();
+            segmentDir.Normalize();
         }
-        */
 
         float angle = Mathf.Acos(Vector2.Dot(new Vector2(0f, -1f), segmentDir));
 
