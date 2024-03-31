@@ -9,7 +9,7 @@ public class MakePathContinuous : MonoBehaviour
 
     Texture2D exclusionZone;
 
-    List<Grower>[][] grid;
+    List<Node>[,] grid;
 
     int resolution = 100;
 
@@ -17,6 +17,14 @@ public class MakePathContinuous : MonoBehaviour
 
     private void Start()
     {
+        grid = new List<Node>[6, 6];
+        for(int i = 0; i < 6; i++)
+        {
+            for(int j = 0; j < 6; j++)
+            {
+                grid[i, j] = new List<Node>();
+            }
+        }
         growers = new List<Node>();
         attractors = new List<Attractor>();
         PlaceRootNodes();
@@ -26,7 +34,7 @@ public class MakePathContinuous : MonoBehaviour
     private void PlaceRootNodes() 
     {
         // Tag One
-        Grower g = new Grower(new Vector2(0, resolution - 1), null, null, 1, 0);
+        Grower g = new Grower(new Vector2(0, resolution - 1), null, (0,5), null, 1, 0);
         growers.Add(g);
     }
 
@@ -54,7 +62,9 @@ public class MakePathContinuous : MonoBehaviour
                     
                     if (bruh == 1)
                     {
-                        Attractor a = new Attractor(new Vector2(j, i), null, 5, 2, this, 1, 2);
+                        int gridX = Mathf.FloorToInt(j / (resolution / 6));
+                        int gridY = Mathf.FloorToInt(i / (resolution / 6));
+                        Attractor a = new Attractor(new Vector2(j, i), null, (gridX, gridY), 5, 2, this, 1, 2);
                         attractors.Add(a);
                     }
                 }
@@ -106,7 +116,9 @@ public class MakePathContinuous : MonoBehaviour
             Vector2 newGrowthPos = new Vector2(g.pos.x + x, g.pos.y + y);
 
             // NOTE!!! this currently does not check for overlap
-            Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), null, g, g.tag, 0);
+            int gridX = Mathf.FloorToInt(newGrowthPos.x / (resolution / 6));
+            int gridY = Mathf.FloorToInt(newGrowthPos.y / (resolution / 6));
+            Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), null, (gridX, gridY), g, g.tag, 0);
             growers.Add(leaf);
             g.ThicknessChange();
 
@@ -189,7 +201,10 @@ public class MakePathContinuous : MonoBehaviour
                 }
 
                 // NOTE!!! this currently does not check for overlap
-                Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), null, g, g.tag, depth);
+
+                int gridX = Mathf.FloorToInt(newGrowthPos.x / (resolution / 6));
+                int gridY = Mathf.FloorToInt(newGrowthPos.y / (resolution / 6));
+                Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), null, (gridX, gridY), g, g.tag, depth);
                 leaf.parent.child = leaf;
                 growers.Add(leaf);
                 g.ThicknessChange();

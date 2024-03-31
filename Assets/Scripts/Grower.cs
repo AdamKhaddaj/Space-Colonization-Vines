@@ -11,7 +11,7 @@ public class Grower : Node
     public int numKills, numInfluencers;
     public int depth;
 
-    public Grower(Vector2 pos, Node[,] nodes, Grower parent, int tag, int depth) : base(pos, nodes)
+    public Grower(Vector2 pos, Node[,] nodes, (int, int) gridLocation, Grower parent, int tag, int depth) : base(pos, nodes, gridLocation)
     {
         active = false;
         numInfluencers = 0;

@@ -11,7 +11,7 @@ public class Attractor : Node
     MakePathContinuous manager;
     int tag2;
 
-    public Attractor(Vector2 pos, Node[,] nodes, int influenceRadius, int killRadius, MakePathContinuous manager, int tag , int tag2) : base(pos, nodes)
+    public Attractor(Vector2 pos, Node[,] nodes, (int,int) gridLocation, int influenceRadius, int killRadius, MakePathContinuous manager, int tag , int tag2) : base(pos, nodes, gridLocation)
     {
         this.influenceRadius = influenceRadius;
         this.killRadius = killRadius;
@@ -102,32 +102,36 @@ public class Attractor : Node
         {
             Grower g = (Grower)growers[i];
 
-            if (g.tag == tag || g.tag == tag2)
+            // only look at grow nodes within 1 range in the grid
+            //Debug.Log("COMPARING: (" + g.gridLocation.Item1 + "," + g.gridLocation.Item2 + ") and: (" + gridLocation.Item1 + "," + gridLocation.Item2 + ")");
+            //if(Mathf.Abs(g.gridLocation.Item1 - gridLocation.Item1) < 2 && Mathf.Abs(g.gridLocation.Item2 - gridLocation.Item2) < 2)
+            if(true)
             {
-                float dist = Vector2.Distance(pos, g.pos);
-                if (dist <= influenceRadius)
+                if (g.tag == tag || g.tag == tag2)
                 {
-                    if (dist <= killRadius)
+                    float dist = Vector2.Distance(pos, g.pos);
+                    if (dist <= influenceRadius)
                     {
-                        dying = true;
-                        if (dist < closestDist)
+                        if (dist <= killRadius)
                         {
-                            closestDist = dist;
-                            closestNode = g;
+                            dying = true;
+                            if (dist < closestDist)
+                            {
+                                closestDist = dist;
+                                closestNode = g;
+                            }
                         }
-                    }
-                    else
-                    {
-                        if (dist < closestDist)
+                        else
                         {
-                            closestDist = dist;
-                            closestNode = g;
+                            if (dist < closestDist)
+                            {
+                                closestDist = dist;
+                                closestNode = g;
+                            }
                         }
                     }
                 }
             }
-            
-            
         }
         return (closestNode, dying);
     }

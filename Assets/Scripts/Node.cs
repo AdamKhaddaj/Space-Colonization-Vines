@@ -8,11 +8,13 @@ public abstract class Node
     public Node[,] nodes; // reference to node array 
     public bool active;
     public int tag;
+    public (int, int) gridLocation;
 
-    public Node(Vector2 pos, Node[,] nodes, int tag = 1)
+    public Node(Vector2 pos, Node[,] nodes, (int,int) gridLocation, int tag = 1)
     {
         this.pos = pos;
         this.nodes = nodes;
+        this.gridLocation = gridLocation;
         this.tag = tag;
     }
 }
