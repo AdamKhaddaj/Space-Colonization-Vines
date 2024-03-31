@@ -7,6 +7,8 @@ public class VineGrowthController : MonoBehaviour
 {
     [Header("General Settings")]
     [SerializeField]
+    private Vector2 textureResolution = new Vector2(1024, 1024);
+    [SerializeField]
     private Color vineColor = new Color(114.0f / 255.0f, 92.0f / 255.0f, 66.0f / 255.0f);
     [SerializeField]
     private Renderer baseObject; //game object that vine will grow on
@@ -42,11 +44,20 @@ public class VineGrowthController : MonoBehaviour
     private RenderTexture vineTexture; //final vine texture to be used on base object
     private bool vineGenerated;
 
+    //saving texture settings
+    private string textureName;
+
+    public string TextureName
+    {
+        get { return textureName; }
+        set { textureName = value; }
+    }
+
     void Start()
     {
         makePath = this.GetComponent<MakePath>();
         makePathContinuous = this.GetComponent<MakePathContinuous>();
-        drawVine = new DrawVine(1024, 1024);
+        drawVine = new DrawVine((int)textureResolution.x, (int)textureResolution.y);
         baseObjectMat = baseObject.material;
         vineGenerated = false;
     }
@@ -55,9 +66,7 @@ public class VineGrowthController : MonoBehaviour
     {
         if (Input.GetKeyDown("g")) //generate vines
         {
-            //create path of vines
-            makePathContinuous.CreatePathFull();
-            vineGenerated = true;
+            GenerateVines();
         }
 
         if (Input.GetKeyDown("d")) //draw
@@ -71,18 +80,27 @@ public class VineGrowthController : MonoBehaviour
 
     }
 
+    public void GenerateVines()
+    {
+        //create path of vines
+        makePathContinuous.CreatePathFull();
+        vineGenerated = true;
+    }
 
     /// <summary>
     /// Method generates vines, draws it to a texture and assigns the texture to the base object
     /// </summary>
-    void DrawVines(bool animate)
+    public void DrawVines(bool animate)
     {
+        if (!vineGenerated)
+            GenerateVines();
+
         if (animate)
         {
             drawVine.ClearTexture();
 
             vineTexture = drawVine.Result;
-            StartCoroutine(drawVine.DrawToRenderTextureAnim(true, true, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture));
+            StartCoroutine(drawVine.DrawToRenderTextureAnim(drawLeaves, drawLeavesAtEndsOnly, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture, leafDensity, leafGravityScale, leafScale, randomLeafScaleOffset, randomLeafRotOffset));
         }
         else
         {
@@ -92,5 +110,39 @@ public class VineGrowthController : MonoBehaviour
         }
 
         baseObjectMat.SetTexture("_VineTex", vineTexture);
+    }
+
+    public void SaveTexture()
+    {
+        if (vineTexture == null)
+        {
+            Debug.LogWarning("Generate and draw a texture first before saving.");
+            return;
+        }
+
+        TextureFormat format;
+
+        //convert rendertextureformat to textureformat
+        switch(vineTexture.format)
+        {
+            case RenderTextureFormat.ARGBFloat:
+                format = TextureFormat.ARGB32;
+                break;
+            default:
+                format = TextureFormat.ARGB32;
+                break;
+        }
+
+        Texture2D tex = new Texture2D(vineTexture.width, vineTexture.height, format, false, true);
+
+        RenderTexture curRenTex = RenderTexture.active;
+        RenderTexture.active = vineTexture;
+
+        tex.ReadPixels(new Rect(0, 0, vineTexture.width, vineTexture.height), 0, 0);
+        tex.Apply();
+
+        RenderTexture.active = curRenTex;
+
+        System.IO.File.WriteAllBytes("Assets\\" + textureName + ".png", tex.EncodeToPNG());
     }
 }

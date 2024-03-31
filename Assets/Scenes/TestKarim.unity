@@ -260,6 +260,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b3493e41f1100b47baf10b1b4135f5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  textureResolution: {x: 1024, y: 1024}
   vineColor: {r: 0.4716981, g: 0.40177423, b: 0.24252403, a: 1}
   baseObject: {fileID: 1006332204}
   drawVineShader: {fileID: 4800000, guid: 429f565a77026da4daaaa424f55af9f0, type: 3}
