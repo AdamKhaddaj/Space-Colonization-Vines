@@ -8,12 +8,15 @@ public class MakePathContinuous : MonoBehaviour
     List<Attractor> attractors;
 
     Texture2D exclusionZone;
+    bool inclusion, exclusion = false;
 
     List<Node>[,] grid;
 
-    int resolution = 100;
+    int resolution = 128;
 
     int depth = 0;
+
+    public bool wiggleAttractionNodes = false;
 
     private void Start()
     {
@@ -31,16 +34,58 @@ public class MakePathContinuous : MonoBehaviour
         PlaceAttractionPoints();
     }
 
-    private void PlaceRootNodes() 
-    {
-        // Tag One
-        Grower g = new Grower(new Vector2(0, resolution - 1), null, (0,5), null, 1, 0);
-        growers.Add(g);
-    }
-
-    public void SetExclusionZone(Texture2D tex)
+    public void SetBoundaryTex(Texture2D tex)
     {
         exclusionZone = tex;
+    }
+
+    public void SetBoundaryType(bool inclusion, bool exclusion)
+    {
+        if (inclusion)
+        {
+            this.inclusion = true;
+        }
+        else if (exclusion)
+        {
+            this.exclusion = true;
+        }
+    }
+
+    public void MakeWiggle()
+    {
+        wiggleAttractionNodes = true;
+    }
+
+    private void PlaceRootNodes() 
+    {
+        if (inclusion || exclusion)
+        {
+            Color[] pixels = exclusionZone.GetPixels();
+            for(int i = 0; i < pixels.Length; i++)
+            {
+                if (pixels[i].g > 0)
+                {
+                    int x = i % exclusionZone.width;
+                    int y = (i - x) / exclusionZone.width;
+                    // conver to coordinates of vine image
+                    int correspondX = x * resolution / exclusionZone.width;
+                    int correspondY = y * resolution / exclusionZone.width;
+
+                    int gridX = Mathf.FloorToInt(correspondX / (resolution / 6));
+                    int gridY = Mathf.FloorToInt(correspondY / (resolution / 6));
+                    Grower g = new Grower(new Vector2(correspondX, correspondY), null, (gridX, gridY), null, 1, 0);
+                    growers.Add(g);
+                }
+            }
+        }
+        else
+        {
+            Grower g = new Grower(new Vector2(0, resolution - 1), null, (0, 5), null, 1, 0);
+            growers.Add(g);
+
+            Grower g2 = new Grower(new Vector2(0, 0), null, (0, 0), null, 1, 0);
+            growers.Add(g2);
+        }
     }
 
     private void PlaceAttractionPoints() // arbitrary placement for now
@@ -49,9 +94,52 @@ public class MakePathContinuous : MonoBehaviour
         {
             for (int j = 0; j < resolution; j++)
             {
-                // NOTE: make sure to scale coordinates to exclusion zone resolution when needed (dont need in this case cause both are 128x128)
-                //if(exclusionZone.GetPixel(j,i).r == 0)
-                if(true)
+                // make sure to scale coordinates to exclusion zone resolution when needed
+                if (exclusion)
+                {
+                    int correspondX = j * exclusionZone.width / resolution;
+                    int correspondY = i * exclusionZone.width / resolution;
+                    if (exclusionZone.GetPixel(correspondX, correspondY).r == 0)
+                    {
+                        int bruh = UnityEngine.Random.Range(1, 4);
+                        /*
+                        int[] tags = new int[2];
+                        int p1 = UnityEngine.Random.Range(1, 3);
+                        int p2 = UnityEngine.Random.Range(1, 3);
+                        */
+
+                        if (bruh == 1)
+                        {
+                            int gridX = Mathf.FloorToInt(j / (resolution / 6));
+                            int gridY = Mathf.FloorToInt(i / (resolution / 6));
+                            Attractor a = new Attractor(new Vector2(j, i), null, (gridX, gridY), 5, 2, this, 1, 2);
+                            attractors.Add(a);
+                        }
+                    }
+                }
+                else if (inclusion)
+                {
+                    int correspondX = j * exclusionZone.width / resolution;
+                    int correspondY = i * exclusionZone.width / resolution;
+                    if (exclusionZone.GetPixel(correspondX, correspondY).r != 0)
+                    {
+                        int bruh = UnityEngine.Random.Range(1, 4);
+                        /*
+                        int[] tags = new int[2];
+                        int p1 = UnityEngine.Random.Range(1, 3);
+                        int p2 = UnityEngine.Random.Range(1, 3);
+                        */
+
+                        if (bruh == 1)
+                        {
+                            int gridX = Mathf.FloorToInt(j / (resolution / 6));
+                            int gridY = Mathf.FloorToInt(i / (resolution / 6));
+                            Attractor a = new Attractor(new Vector2(j, i), null, (gridX, gridY), 5, 2, this, 1, 2);
+                            attractors.Add(a);
+                        }
+                    }
+                }
+                else
                 {
                     int bruh = UnityEngine.Random.Range(1, 4);
                     /*
@@ -59,7 +147,7 @@ public class MakePathContinuous : MonoBehaviour
                     int p1 = UnityEngine.Random.Range(1, 3);
                     int p2 = UnityEngine.Random.Range(1, 3);
                     */
-                    
+
                     if (bruh == 1)
                     {
                         int gridX = Mathf.FloorToInt(j / (resolution / 6));
@@ -103,6 +191,12 @@ public class MakePathContinuous : MonoBehaviour
                     a.active = false;
                     g.numKills++;
                 }
+            }
+
+            if (wiggleAttractionNodes)
+            {
+                a.pos.x += Mathf.Cos(Time.time);
+                a.pos.y += Mathf.Sin(Time.time);
             }
         }
 
