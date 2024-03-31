@@ -14,6 +14,8 @@ public class VineGrowthController : MonoBehaviour
     private Shader drawVineShader; //shader to use to draw shape for grower nodes
     [SerializeField]
     private Shader drawLeafShader; //shader to use to draw shape for grower nodes
+    [SerializeField]
+    private bool wiggleAttractionPoints;
 
     [Header("Leaf Settings")]
     [SerializeField]
@@ -35,6 +37,14 @@ public class VineGrowthController : MonoBehaviour
     [SerializeField]
     private float randomLeafScaleOffset = 0.0f;
 
+    [Header("Exclusion / Inclusion Zones")]
+    [SerializeField]
+    private bool useInclusion = false;
+    [SerializeField]
+    private bool useExclusion = false;
+    [SerializeField]
+    private Texture2D boundaryTexture;
+
     private MakePath makePath;
     private MakePathContinuous makePathContinuous;
     private DrawVine drawVine;
@@ -46,6 +56,10 @@ public class VineGrowthController : MonoBehaviour
     {
         makePath = this.GetComponent<MakePath>();
         makePathContinuous = this.GetComponent<MakePathContinuous>();
+        makePathContinuous.SetBoundaryTex(boundaryTexture);
+        makePathContinuous.SetBoundaryType(useInclusion, useExclusion);
+        makePathContinuous.wiggleAttractionNodes = wiggleAttractionPoints;
+        makePathContinuous.SetBoundaryType(useInclusion, useExclusion);
         drawVine = new DrawVine(1024, 1024);
         baseObjectMat = baseObject.material;
         vineGenerated = false;

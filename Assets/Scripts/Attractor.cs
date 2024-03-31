@@ -104,8 +104,7 @@ public class Attractor : Node
 
             // only look at grow nodes within 1 range in the grid
             //Debug.Log("COMPARING: (" + g.gridLocation.Item1 + "," + g.gridLocation.Item2 + ") and: (" + gridLocation.Item1 + "," + gridLocation.Item2 + ")");
-            //if(Mathf.Abs(g.gridLocation.Item1 - gridLocation.Item1) < 2 && Mathf.Abs(g.gridLocation.Item2 - gridLocation.Item2) < 2)
-            if(true)
+            if(Mathf.Abs(g.gridLocation.Item1 - gridLocation.Item1) < 2 && Mathf.Abs(g.gridLocation.Item2 - gridLocation.Item2) < 2)
             {
                 if (g.tag == tag || g.tag == tag2)
                 {
