@@ -12,13 +12,13 @@ public class MakePathContinuous : MonoBehaviour
 
     List<Node>[,] grid;
 
-    int resolution = 128;
+    int resolution = 164;
 
     int depth = 0;
 
     public bool wiggleAttractionNodes = false;
 
-    private void Start()
+    public void SetUp()
     {
         grid = new List<Node>[6, 6];
         for(int i = 0; i < 6; i++)

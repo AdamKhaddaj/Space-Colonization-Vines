@@ -3,9 +3,10 @@ Shader "Unlit/DrawCircle"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _SingleFrag("Paint Single Pixel", float) = 1.0
         _Position("Position", Vector) = (0.0, 0.0, 0.0)
         _Color("Color", Color) = (1.0, 0.0, 0.0, 0.0)
-        _Size("Circle Size", float) = 0.005
+        _Size("Brush Size", float) = 0.005
     }
     SubShader
     {
@@ -38,6 +39,7 @@ Shader "Unlit/DrawCircle"
             fixed4 _Position;
             fixed4 _Color;
             float _Size;
+            float _SingleFrag;
 
             v2f vert (appdata v)
             {
@@ -51,13 +53,15 @@ Shader "Unlit/DrawCircle"
             {
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
-
+        
                 float draw = step(distance(i.uv, _Position.xy), _Size);
-                fixed4 drawCol = _Color * draw;
-               
-                col = saturate(col + drawCol);
 
-                return col;
+                fixed4 drawCol = _Color * draw;
+                
+                if(drawCol.a == 0.0 )
+                    drawCol = col;
+
+                return drawCol;
             }
             ENDCG
         }

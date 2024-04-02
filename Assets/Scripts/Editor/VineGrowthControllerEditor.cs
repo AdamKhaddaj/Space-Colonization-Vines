@@ -12,17 +12,25 @@ public class VineGrowthControllerEditor : Editor
 
         base.OnInspectorGUI();
 
-        if (GUILayout.Button("Generate Vines"))
+        if (GUILayout.Button("Reset Boundary Texture") && Application.isPlaying)
+        {
+            tar.ResetBoundaryTexture();
+        }
+
+        EditorGUILayout.Space();
+        EditorGUILayout.Space();
+
+        if (GUILayout.Button("Generate Vines") && Application.isPlaying)
         {
             tar.GenerateVines();
         }
 
-        if (GUILayout.Button("Draw Vines"))
+        if (GUILayout.Button("Draw Vines") && Application.isPlaying)
         {
             tar.DrawVines(false);
         }
 
-        if (GUILayout.Button("Animate Vines"))
+        if (GUILayout.Button("Animate Vines") && Application.isPlaying)
         {
             tar.DrawVines(true);
         }
@@ -35,7 +43,7 @@ public class VineGrowthControllerEditor : Editor
 
         tar.TextureName = EditorGUILayout.TextField("Filename", tar.TextureName);
 
-        if (GUILayout.Button("Save Texture"))
+        if (GUILayout.Button("Save Texture") && Application.isPlaying)
         {
             tar.SaveTexture();
         }

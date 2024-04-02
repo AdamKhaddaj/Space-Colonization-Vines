@@ -5,19 +5,30 @@ using UnityEngine;
 [RequireComponent(typeof(MakePathContinuous))]
 public class VineGrowthController : MonoBehaviour
 {
+    public enum DrawMode
+    {
+        None,
+        PlaceGrowthNodes,
+        DrawZones
+    }
+
+    public enum InclusionMode
+    {
+        None,
+        Inclusion,
+        Exclusion
+    }
+
     [Header("General Settings")]
+    [SerializeField]
+    private Renderer baseObject; //game object that vine will grow on
     [SerializeField]
     private Vector2 textureResolution = new Vector2(1024, 1024);
     [SerializeField]
     private Color vineColor = new Color(114.0f / 255.0f, 92.0f / 255.0f, 66.0f / 255.0f);
     [SerializeField]
-    private Renderer baseObject; //game object that vine will grow on
-    [SerializeField]
-    private Shader drawVineShader; //shader to use to draw shape for grower nodes
-    [SerializeField]
-    private Shader drawLeafShader; //shader to use to draw shape for grower nodes
-    [SerializeField]
     private bool wiggleAttractionPoints;
+
 
     [Header("Leaf Settings")]
     [SerializeField]
@@ -41,18 +52,37 @@ public class VineGrowthController : MonoBehaviour
 
     [Header("Exclusion / Inclusion Zones")]
     [SerializeField]
-    private bool useInclusion = false;
+    private InclusionMode inclusionMode;
     [SerializeField]
-    private bool useExclusion = false;
+    private DrawMode drawMode;
+    [Range(0.0f, 0.05f)]
+    [SerializeField]
+    private float brushSize = 0.02f;
     [SerializeField]
     private Texture2D boundaryTexture;
 
+    private Camera mainCam;
+
+    private string zonesBrushShaderName = "Unlit/DrawCircle";
+    private string drawVineShaderName = "Unlit/DrawLine"; //shader to use to draw shape for grower nodes
+    private string drawLeafShaderName = "Unlit/DrawLeaf"; //shader to use to draw shape for grower nodes
+
+    private Shader drawVineShader;
+    private Shader drawLeafShader;
+
+    private RenderTexture boundaryTex;
+    private RenderTexture vineTexture; //final vine texture to be used on base object
+
+    private Material zonesBrushMat;
+    private Material baseObjectMat;
+
     private MakePath makePath;
     private MakePathContinuous makePathContinuous;
+
     private DrawVine drawVine;
-    private Material baseObjectMat;
-    private RenderTexture vineTexture; //final vine texture to be used on base object
+
     private bool vineGenerated;
+    private RaycastHit hit;
 
     //saving texture settings
     private string textureName;
@@ -63,46 +93,106 @@ public class VineGrowthController : MonoBehaviour
         set { textureName = value; }
     }
 
+    private void OnValidate()
+    {
+        //Debug.Log("My value changed to: " + myValue);
+    }
+
     void Start()
     {
         makePath = this.GetComponent<MakePath>();
         makePathContinuous = this.GetComponent<MakePathContinuous>();
 
-        drawVine = new DrawVine((int)textureResolution.x, (int)textureResolution.y);
+        zonesBrushMat = new Material(Shader.Find(zonesBrushShaderName));
+        zonesBrushMat.SetColor("_Color", Color.red);
+        zonesBrushMat.SetFloat("_Size", brushSize);
 
-        makePathContinuous.SetBoundaryTex(boundaryTexture);
-        makePathContinuous.SetBoundaryType(useInclusion, useExclusion);
-        makePathContinuous.wiggleAttractionNodes = wiggleAttractionPoints;
-        makePathContinuous.SetBoundaryType(useInclusion, useExclusion);
-        drawVine = new DrawVine(1024, 1024);
+        drawLeafShader = Shader.Find(drawLeafShaderName);
+        drawVineShader = Shader.Find(drawVineShaderName);
 
         baseObjectMat = baseObject.material;
         vineGenerated = false;
+
+        mainCam = Camera.main;
+
+        boundaryTex = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGBFloat);
+
+        if(drawMode != DrawMode.None)
+        {
+            baseObjectMat.SetTexture("_VineTex", boundaryTex);
+        }
+
+        drawVine = new DrawVine((int)textureResolution.x, (int)textureResolution.y);
+
+        SetBoundaryTexture();
+
+        makePathContinuous.wiggleAttractionNodes = wiggleAttractionPoints;
     }
 
     void Update()
     {
-        if (Input.GetKeyDown("g")) //generate vines
+        if(Input.GetKey(KeyCode.Mouse0))
         {
-            GenerateVines();
+            if(Physics.Raycast(mainCam.ScreenPointToRay(Input.mousePosition), out hit))
+            {
+                Paint();
+            }
+        }
+    }
+
+    private void SetBoundaryTexture()
+    {
+        Texture2D boundTex = boundaryTexture;
+
+        bool useInclusion = (inclusionMode == InclusionMode.Inclusion);
+        bool useExclusion = (inclusionMode == InclusionMode.Exclusion);
+
+        if(boundaryTexture == null)
+        {
+            boundTex = ConvertRenderTextureToTexture2D(boundaryTex);
         }
 
-        if (Input.GetKeyDown("d")) //draw
+        makePathContinuous.SetBoundaryTex(boundTex);
+        makePathContinuous.SetBoundaryType(useInclusion, useExclusion);
+    }
+    private void Paint()
+    {
+        float tmpBrushSize = brushSize;
+
+        if (drawMode == DrawMode.PlaceGrowthNodes)
         {
-            DrawVines(false);
+            tmpBrushSize = 0.001f;
+
+            zonesBrushMat.SetColor("_Color", Color.green);
         }
-        else if(Input.GetKeyDown("a")) //animate
+        else
         {
-            DrawVines(true);
+            zonesBrushMat.SetColor("_Color", Color.red);
         }
 
+        zonesBrushMat.SetFloat("_Size", tmpBrushSize);
+        zonesBrushMat.SetVector("_Position", new Vector4(hit.textureCoord.x, hit.textureCoord.y, 0.0f, 0.0f));
+
+        RenderTexture tmp = RenderTexture.GetTemporary(boundaryTex.width, boundaryTex.height, 0, boundaryTex.format);
+        Graphics.Blit(boundaryTex, tmp);
+        Graphics.Blit(tmp, boundaryTex, zonesBrushMat);
+        RenderTexture.ReleaseTemporary(tmp);
     }
 
     public void GenerateVines()
     {
+        SetBoundaryTexture();
+
+        makePathContinuous.SetUp();
+
         //create path of vines
         makePathContinuous.CreatePathFull();
         vineGenerated = true;
+    }
+
+    public void ResetBoundaryTexture()
+    {
+        boundaryTex.Release();
     }
 
     /// <summary>
@@ -138,10 +228,17 @@ public class VineGrowthController : MonoBehaviour
             return;
         }
 
+        Texture2D tex = ConvertRenderTextureToTexture2D(vineTexture);
+
+        System.IO.File.WriteAllBytes("Assets\\" + textureName + ".png", tex.EncodeToPNG());
+    }
+
+    private Texture2D ConvertRenderTextureToTexture2D(RenderTexture renTex)
+    {
         TextureFormat format;
 
         //convert rendertextureformat to textureformat
-        switch(vineTexture.format)
+        switch (renTex.format)
         {
             case RenderTextureFormat.ARGBFloat:
                 format = TextureFormat.ARGB32;
@@ -151,16 +248,16 @@ public class VineGrowthController : MonoBehaviour
                 break;
         }
 
-        Texture2D tex = new Texture2D(vineTexture.width, vineTexture.height, format, false, true);
+        Texture2D tex = new Texture2D(renTex.width, renTex.height, format, false, true);
 
         RenderTexture curRenTex = RenderTexture.active;
-        RenderTexture.active = vineTexture;
+        RenderTexture.active = renTex;
 
-        tex.ReadPixels(new Rect(0, 0, vineTexture.width, vineTexture.height), 0, 0);
+        tex.ReadPixels(new Rect(0, 0, renTex.width, renTex.height), 0, 0);
         tex.Apply();
 
         RenderTexture.active = curRenTex;
 
-        System.IO.File.WriteAllBytes("Assets\\" + textureName + ".png", tex.EncodeToPNG());
+        return tex;
     }
 }
