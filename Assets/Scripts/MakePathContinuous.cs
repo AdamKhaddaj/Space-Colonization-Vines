@@ -15,8 +15,15 @@ public class MakePathContinuous : MonoBehaviour
     int resolution = 164;
 
     int depth = 0;
+    
+    float wiggleStrength = 1.5f;
 
-    public bool wiggleAttractionNodes = false;
+    bool wiggleAttractionNodes = false;
+
+    public void SetResolution(int resolution)
+    {
+        this.resolution = resolution;
+    }
 
     public void SetUp()
     {
@@ -51,9 +58,9 @@ public class MakePathContinuous : MonoBehaviour
         }
     }
 
-    public void MakeWiggle()
+    public void SetWiggle(bool wiggle)
     {
-        wiggleAttractionNodes = true;
+        wiggleAttractionNodes = wiggle;
     }
 
     private void PlaceRootNodes() 
@@ -63,7 +70,7 @@ public class MakePathContinuous : MonoBehaviour
             Color[] pixels = exclusionZone.GetPixels();
             for(int i = 0; i < pixels.Length; i++)
             {
-                if (pixels[i].g > 0)
+                if (pixels[i].g == 1)
                 {
                     int x = i % exclusionZone.width;
                     int y = (i - x) / exclusionZone.width;
@@ -227,6 +234,7 @@ public class MakePathContinuous : MonoBehaviour
     {
         bool death = false;
         int checker = 0;
+        float counter = 0.0f;
 
         //If after 10 iterations, no attraction points have died, stop growth
         while (true)
@@ -273,6 +281,12 @@ public class MakePathContinuous : MonoBehaviour
                         g.numKills++;
                         death = true;
                     }
+                    if(wiggleAttractionNodes)
+                    {
+                        counter++;
+                        a.pos.x += Mathf.Cos(counter) * wiggleStrength;
+                        a.pos.y += Mathf.Sin(counter) * wiggleStrength;
+                    }
                 }
             }
 
@@ -288,8 +302,11 @@ public class MakePathContinuous : MonoBehaviour
                 // to fix bug where growth node is pulled between two attraction points
                 if(g.parent != null)
                 {
-                    if (newGrowthPos == g.parent.pos)
+                    if (Vector2.Distance(newGrowthPos, g.parent.pos) < 0.1f)
                     {
+                        g.growthDir = Vector2.zero;
+                        g.numInfluencers = 0;
+                        g.active = false;
                         continue;
                     }
                 }

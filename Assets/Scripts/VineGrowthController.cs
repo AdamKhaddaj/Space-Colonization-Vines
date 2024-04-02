@@ -25,6 +25,8 @@ public class VineGrowthController : MonoBehaviour
     [SerializeField]
     private Vector2 textureResolution = new Vector2(1024, 1024);
     [SerializeField]
+    private int vineResolution = 128;
+    [SerializeField]
     private Color vineColor = new Color(114.0f / 255.0f, 92.0f / 255.0f, 66.0f / 255.0f);
     [SerializeField]
     private bool wiggleAttractionPoints;
@@ -124,9 +126,11 @@ public class VineGrowthController : MonoBehaviour
 
         drawVine = new DrawVine((int)textureResolution.x, (int)textureResolution.y);
 
+        makePathContinuous.SetResolution(vineResolution);
+
         SetBoundaryTexture();
 
-        makePathContinuous.wiggleAttractionNodes = wiggleAttractionPoints;
+        makePathContinuous.SetWiggle(wiggleAttractionPoints);
     }
 
     void Update()
@@ -149,8 +153,11 @@ public class VineGrowthController : MonoBehaviour
 
         if(boundaryTexture == null)
         {
+
             boundTex = ConvertRenderTextureToTexture2D(boundaryTex);
         }
+
+        boundTex = flipTex(boundTex);
 
         makePathContinuous.SetBoundaryTex(boundTex);
         makePathContinuous.SetBoundaryType(useInclusion, useExclusion);
@@ -161,7 +168,7 @@ public class VineGrowthController : MonoBehaviour
 
         if (drawMode == DrawMode.PlaceGrowthNodes)
         {
-            tmpBrushSize = 0.001f;
+            tmpBrushSize = 0.002f;
 
             zonesBrushMat.SetColor("_Color", Color.green);
         }
@@ -181,7 +188,12 @@ public class VineGrowthController : MonoBehaviour
 
     public void GenerateVines()
     {
+
+        makePathContinuous.SetResolution(vineResolution);
+
         SetBoundaryTexture();
+
+        makePathContinuous.SetWiggle(wiggleAttractionPoints);
 
         makePathContinuous.SetUp();
 
@@ -259,5 +271,20 @@ public class VineGrowthController : MonoBehaviour
         RenderTexture.active = curRenTex;
 
         return tex;
+    }
+
+    private Texture2D flipTex(Texture2D tex)
+    {
+        Texture2D res = new Texture2D(tex.width, tex.height, tex.format, false, true);
+
+        for (int i = 0; i < tex.height; i++)
+        {
+            for (int j = 0; j < tex.width; j++)
+            {
+                res.SetPixel(j, i, tex.GetPixel(j, tex.width - i));
+            }
+        }
+
+        return res;
     }
 }
