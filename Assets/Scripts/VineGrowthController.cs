@@ -30,7 +30,9 @@ public class VineGrowthController : MonoBehaviour
     private Color vineColor = new Color(114.0f / 255.0f, 92.0f / 255.0f, 66.0f / 255.0f);
     [SerializeField]
     private bool wiggleAttractionPoints;
-
+    [Range(0.0f, 5.0f)]
+    [SerializeField]
+    private float wiggleAmount;
 
     [Header("Leaf Settings")]
     [SerializeField]
@@ -194,6 +196,8 @@ public class VineGrowthController : MonoBehaviour
         SetBoundaryTexture();
 
         makePathContinuous.SetWiggle(wiggleAttractionPoints);
+
+        makePathContinuous.SetWiggleStrength(wiggleAmount);
 
         makePathContinuous.SetUp();
 

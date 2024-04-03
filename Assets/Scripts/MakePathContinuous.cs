@@ -25,6 +25,11 @@ public class MakePathContinuous : MonoBehaviour
         this.resolution = resolution;
     }
 
+    public void SetWiggleStrength(float wiggleStrength)
+    {
+        this.wiggleStrength = wiggleStrength;
+    }
+
     public void SetUp()
     {
         grid = new List<Node>[6, 6];
