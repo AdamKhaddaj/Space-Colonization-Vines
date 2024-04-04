@@ -164,6 +164,8 @@ public class VineGrowthController : MonoBehaviour
         inclusionMode = InclusionMode.None;
         drawMode = DrawMode.None;
 
+        baseObjectMat.SetFloat("_Opacity", 1.0f);
+
         SetUpMakePath();
     }
 
@@ -232,6 +234,7 @@ public class VineGrowthController : MonoBehaviour
         vineGenerated = true;
 
         drawMode = DrawMode.None;
+        baseObjectMat.SetFloat("_Opacity", 1.0f);
 
         baseObjectMat.SetTexture("_VineTex", vineTexture);
     }
@@ -276,6 +279,8 @@ public class VineGrowthController : MonoBehaviour
 
         baseObjectMat.SetTexture("_VineTex", vineTexture);
         drawMode = DrawMode.None;
+        baseObjectMat.SetFloat("_Opacity", 1.0f);
+
 
     }
 
