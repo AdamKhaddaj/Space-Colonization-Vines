@@ -8,6 +8,8 @@ Shader "Unlit/DrawLine"
         _Color("Color", Color) = (1.0, 0.0, 0.0, 0.0)
         _Thickness("Line Thickness", float) = 0.005
         _MaxThickness("Max Thickness", float) = 100
+        _MinVineThickness("Min Vine Thickness", float) = 0.002
+        _MaxVineThickness("Max Vine Thickness", float) = 0.007
     }
     SubShader
     {
@@ -42,6 +44,8 @@ Shader "Unlit/DrawLine"
             fixed4 _Color;
             float _Thickness;
             float _MaxThickness;
+            float _MinVineThickness;
+            float _MaxVineThickness;
 
             float remap(float val, float min1, float max1, float min2, float max2)
             {
@@ -67,8 +71,9 @@ Shader "Unlit/DrawLine"
                 startPos.y = 1 - startPos.y;
                 endPos.y = 1 - endPos.y;
 
-                float thickness = remap(_Thickness, 1, _MaxThickness, 0.002, 0.007);
+                float thickness = remap(_Thickness, 1, _MaxThickness, _MinVineThickness, _MaxVineThickness);
 
+                thickness = clamp(thickness, _MinVineThickness, _MaxVineThickness);
 
                 float2 g = endPos - startPos;
                 float2 h = i.uv - startPos;

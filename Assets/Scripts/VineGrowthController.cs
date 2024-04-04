@@ -26,13 +26,21 @@ public class VineGrowthController : MonoBehaviour
     private Vector2 textureResolution = new Vector2(1024, 1024);
     [SerializeField]
     private int vineResolution = 128;
+
+    [Header("Vine Settings")]
     [SerializeField]
     private Color vineColor = new Color(114.0f / 255.0f, 92.0f / 255.0f, 66.0f / 255.0f);
     [SerializeField]
-    private bool wiggleAttractionPoints;
+    private bool wiggleAttractionPoints = false;
     [Range(0.0f, 5.0f)]
     [SerializeField]
-    private float wiggleAmount;
+    private float wiggleAmount = 0.0f;
+    [Range(0.001f, 0.003f)]
+    [SerializeField]
+    private float minVineThickness = 0.002f;
+    [Range(0.003f, 0.01f)]
+    [SerializeField]
+    private float maxVineThickness = 0.007f;
 
     [Header("Leaf Settings")]
     [SerializeField]
@@ -46,7 +54,7 @@ public class VineGrowthController : MonoBehaviour
     private float leafGravityScale = 0.0f;
     [Range(2, 100)]
     [SerializeField]
-    private int leafDensity = 0;
+    private int leafDensityInterval = 2;
     [SerializeField]
     private float leafScale = 30.0f;
     [SerializeField]
@@ -56,9 +64,9 @@ public class VineGrowthController : MonoBehaviour
 
     [Header("Exclusion / Inclusion Zones")]
     [SerializeField]
-    private InclusionMode inclusionMode;
-    [SerializeField]
     private DrawMode drawMode;
+    [SerializeField]
+    private InclusionMode inclusionMode;
     [Range(0.0f, 0.05f)]
     [SerializeField]
     private float brushSize = 0.02f;
@@ -86,6 +94,8 @@ public class VineGrowthController : MonoBehaviour
     private DrawVine drawVine;
 
     private bool vineGenerated;
+    private bool isPainting = false;
+
     private RaycastHit hit;
 
     //saving texture settings
@@ -99,7 +109,30 @@ public class VineGrowthController : MonoBehaviour
 
     private void OnValidate()
     {
-        //Debug.Log("My value changed to: " + myValue);
+        if (drawVine != null && drawVine.Result != null)
+        {
+            if (textureResolution.x != drawVine.Result.width ||
+                textureResolution.y != drawVine.Result.height)
+                drawVine.SetTextureResolution((int)textureResolution.x, (int)textureResolution.y);
+        }
+
+
+        if (baseObjectMat != null && boundaryTex != null && vineTexture != null)
+        {
+            if (drawMode == DrawMode.DrawZones
+                || drawMode == DrawMode.PlaceGrowthNodes)
+            {
+                baseObjectMat.SetTexture("_VineTex", boundaryTex);
+                baseObjectMat.SetFloat("_Opacity", 0.5f);
+                isPainting = true;
+            }
+            else if (drawMode == DrawMode.None)
+            {
+                baseObjectMat.SetTexture("_VineTex", vineTexture);
+                baseObjectMat.SetFloat("_Opacity", 1.0f);
+                isPainting = false;
+            }
+        }
     }
 
     void Start()
@@ -117,27 +150,26 @@ public class VineGrowthController : MonoBehaviour
         baseObjectMat = baseObject.material;
         vineGenerated = false;
 
+        wiggleAttractionPoints = false;
+        wiggleAmount = 0.0f;
+        leafDensityInterval = 2;
+
         mainCam = Camera.main;
-
-        boundaryTex = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGBFloat);
-
-        if(drawMode != DrawMode.None)
-        {
-            baseObjectMat.SetTexture("_VineTex", boundaryTex);
-        }
 
         drawVine = new DrawVine((int)textureResolution.x, (int)textureResolution.y);
 
-        makePathContinuous.SetResolution(vineResolution);
+        boundaryTex = new RenderTexture(256, 256, 0, RenderTextureFormat.ARGBFloat);
+        vineTexture = drawVine.Result;
 
-        SetBoundaryTexture();
+        inclusionMode = InclusionMode.None;
+        drawMode = DrawMode.None;
 
-        makePathContinuous.SetWiggle(wiggleAttractionPoints);
+        SetUpMakePath();
     }
 
     void Update()
     {
-        if(Input.GetKey(KeyCode.Mouse0))
+        if(Input.GetKey(KeyCode.Mouse0) && isPainting)
         {
             if(Physics.Raycast(mainCam.ScreenPointToRay(Input.mousePosition), out hit))
             {
@@ -191,6 +223,26 @@ public class VineGrowthController : MonoBehaviour
     public void GenerateVines()
     {
 
+        SetUpMakePath();
+
+        makePathContinuous.SetUp();
+
+        //create path of vines
+        makePathContinuous.CreatePathFull();
+        vineGenerated = true;
+
+        drawMode = DrawMode.None;
+
+        baseObjectMat.SetTexture("_VineTex", vineTexture);
+    }
+
+    public void ResetBoundaryTexture()
+    {
+        boundaryTex.Release();
+    }
+
+    private void SetUpMakePath()
+    {
         makePathContinuous.SetResolution(vineResolution);
 
         SetBoundaryTexture();
@@ -198,17 +250,6 @@ public class VineGrowthController : MonoBehaviour
         makePathContinuous.SetWiggle(wiggleAttractionPoints);
 
         makePathContinuous.SetWiggleStrength(wiggleAmount);
-
-        makePathContinuous.SetUp();
-
-        //create path of vines
-        makePathContinuous.CreatePathFull();
-        vineGenerated = true;
-    }
-
-    public void ResetBoundaryTexture()
-    {
-        boundaryTex.Release();
     }
 
     /// <summary>
@@ -224,16 +265,18 @@ public class VineGrowthController : MonoBehaviour
             drawVine.ClearTexture();
 
             vineTexture = drawVine.Result;
-            StartCoroutine(drawVine.DrawToRenderTextureAnim(drawLeaves, drawLeavesAtEndsOnly, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture, leafDensity, leafGravityScale, leafScale, randomLeafScaleOffset, randomLeafRotOffset));
+            StartCoroutine(drawVine.DrawToRenderTextureAnim(drawLeaves, drawLeavesAtEndsOnly, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture, leafDensityInterval, leafGravityScale, leafScale, randomLeafScaleOffset, randomLeafRotOffset, minVineThickness, maxVineThickness));
         }
         else
         {
             drawVine.ClearTexture();
 
-            vineTexture = drawVine.DrawToRenderTexture(drawLeaves, drawLeavesAtEndsOnly, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture, leafDensity, leafGravityScale, leafScale, randomLeafScaleOffset, randomLeafRotOffset);
+            vineTexture = drawVine.DrawToRenderTexture(drawLeaves, drawLeavesAtEndsOnly, vineColor, drawVineShader, makePathContinuous.Growers, makePathContinuous.Resolution, drawLeafShader, leafTexture, leafDensityInterval, leafGravityScale, leafScale, randomLeafScaleOffset, randomLeafRotOffset, minVineThickness, maxVineThickness);
         }
 
         baseObjectMat.SetTexture("_VineTex", vineTexture);
+        drawMode = DrawMode.None;
+
     }
 
     public void SaveTexture()

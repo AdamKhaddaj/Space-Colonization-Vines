@@ -6,6 +6,8 @@ using UnityEditor;
 [CustomEditor(typeof(VineGrowthController))]
 public class VineGrowthControllerEditor : Editor
 {
+    private bool togglePaintMode = false;
+
     public override void OnInspectorGUI()
     {
         VineGrowthController tar = (VineGrowthController)target;
@@ -48,5 +50,4 @@ public class VineGrowthControllerEditor : Editor
             tar.SaveTexture();
         }
     }
-
 }

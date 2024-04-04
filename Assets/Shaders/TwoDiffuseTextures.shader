@@ -4,6 +4,7 @@ Shader "Custom/TwoDiffuseTextures"
     {
         _MainTex ("Base Diffuse Texture", 2D) = "white" {}
         _VineTex("Vine Texture", 2D) = "black" {}
+        _Opacity("Overlay opacity", Range(0.0, 1.0)) = 1.0 
     }
     SubShader
     {
@@ -28,6 +29,7 @@ Shader "Custom/TwoDiffuseTextures"
         half _Glossiness;
         half _Metallic;
         fixed4 _Color;
+        float _Opacity;
 
         // Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
         // See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
@@ -40,6 +42,8 @@ Shader "Custom/TwoDiffuseTextures"
         {
             fixed4 baseColor = tex2D(_MainTex, IN.uv_MainTex);
             fixed4 vineColor = tex2D(_VineTex, IN.uv_MainTex);
+
+            vineColor.a = clamp(vineColor.a, 0.0, _Opacity);
 
             //lerp between base color and vine color
             fixed4 c = lerp(baseColor, vineColor, vineColor.a);

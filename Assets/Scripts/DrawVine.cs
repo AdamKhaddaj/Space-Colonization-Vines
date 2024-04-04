@@ -14,6 +14,11 @@ public class DrawVine
 
     public DrawVine(int resX, int resY, RenderTextureFormat format = RenderTextureFormat.ARGBFloat)
     {
+        SetTextureResolution(resX, resY, format);
+    }
+
+    public void SetTextureResolution(int resX, int resY, RenderTextureFormat format = RenderTextureFormat.ARGBFloat)
+    {
         result = new RenderTexture(resX, resY, 0, format);
     }
 
@@ -22,7 +27,7 @@ public class DrawVine
         result.Release();
     }
 
-    public RenderTexture DrawToRenderTexture(bool drawLeaves, bool leavesAtRoot, Color circleColor, Shader drawVineShader, List<Node> nodes, int nodeGridSize, Shader drawLeafShader, Texture leafTexture, int leafDensity = 5, float leafGravityScale = 0.0f, float leafScale = 30.0f, float randomLeafScaleOffset = 0.0f, float randomLeafRotOffset = 0.0f)
+    public RenderTexture DrawToRenderTexture(bool drawLeaves, bool leavesAtRoot, Color circleColor, Shader drawVineShader, List<Node> nodes, int nodeGridSize, Shader drawLeafShader, Texture leafTexture, int leafDensity = 5, float leafGravityScale = 0.0f, float leafScale = 30.0f, float randomLeafScaleOffset = 0.0f, float randomLeafRotOffset = 0.0f, float minVineThickness = 0.002f, float maxVineThickness = 0.007f)
     {
         float maxThickness = 1000;
         float minThickness = float.MaxValue;
@@ -47,6 +52,8 @@ public class DrawVine
         }
 
         drawVineMaterial.SetFloat("_MaxThickness", maxThickness);
+        drawVineMaterial.SetFloat("_MinVineThickness", minVineThickness);
+        drawVineMaterial.SetFloat("_MaxVineThickness", maxVineThickness);
 
         for (int i = 0; i < nodes.Count; i++)
         {
@@ -73,11 +80,18 @@ public class DrawVine
 
         if (drawLeaves)
         {
+
+            Vector2 prevNodePos = new Vector2(-1.0f, -1.0f);
+
             for (int i = 0; i < nodes.Count; i++)
             {
                 Grower cur = (Grower)nodes[i];
 
                 Vector2 pos = cur.pos / nodeGridSize;
+
+
+                if (pos == prevNodePos)
+                    continue;
 
                 //offset used to have origin of leaf at tip of root instead of center of leaf texture
                 float leafOffset = -0.01f;
@@ -110,6 +124,8 @@ public class DrawVine
                 else
                     curInterval--;
 
+                prevNodePos = cur.pos;
+
             }
         }
 
@@ -118,7 +134,7 @@ public class DrawVine
         return result;
     }
 
-    public IEnumerator DrawToRenderTextureAnim(bool drawLeaves, bool leavesAtRoot, Color circleColor, Shader drawVineShader, List<Node> nodes, int nodeGridSize, Shader drawLeafShader, Texture leafTexture, int leafDensity = 5, float leafGravityScale = 0.0f, float leafScale = 30.0f, float randomLeafScaleOffset = 0.0f, float randomLeafRotOffset = 0.0f)
+    public IEnumerator DrawToRenderTextureAnim(bool drawLeaves, bool leavesAtRoot, Color circleColor, Shader drawVineShader, List<Node> nodes, int nodeGridSize, Shader drawLeafShader, Texture leafTexture, int leafDensity = 5, float leafGravityScale = 0.0f, float leafScale = 30.0f, float randomLeafScaleOffset = 0.0f, float randomLeafRotOffset = 0.0f, float minVineThickness = 0.002f, float maxVineThickness = 0.007f)
     {
         float maxThickness = 1000;
         float minThickness = float.MaxValue;
@@ -143,6 +159,8 @@ public class DrawVine
         }
 
         drawVineMaterial.SetFloat("_MaxThickness", maxThickness);
+        drawVineMaterial.SetFloat("_MinVineThickness", minVineThickness);
+        drawVineMaterial.SetFloat("_MaxVineThickness", maxVineThickness);
 
         for (int i = 0; i < nodes.Count; i++)
         {
@@ -171,6 +189,7 @@ public class DrawVine
 
         if (drawLeaves)
         {
+
             for (int i = 0; i < nodes.Count; i++)
             {
                 Grower cur = (Grower)nodes[i];
