@@ -611,6 +611,8 @@ MonoBehaviour:
   wiggleAmount: 5
   minVineThickness: 0.002
   maxVineThickness: 0.007
+  enableKillLimit: 0
+  growerKillLimit: 20
   drawLeaves: 0
   drawLeavesAtEndsOnly: 0
   leafTexture: {fileID: 2800000, guid: 569cb9bc7ca52b44abddf88303273184, type: 3}
@@ -619,7 +621,7 @@ MonoBehaviour:
   leafScale: 30
   randomLeafRotOffset: 0
   randomLeafScaleOffset: 0
-  drawMode: 2
+  drawMode: 0
   inclusionMode: 1
   brushSize: 0.0369
   boundaryTexture: {fileID: 0}

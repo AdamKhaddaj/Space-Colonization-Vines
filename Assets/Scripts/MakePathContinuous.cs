@@ -20,6 +20,30 @@ public class MakePathContinuous : MonoBehaviour
 
     bool wiggleAttractionNodes = false;
 
+    int growerKillLimit = 20;
+
+    bool dontCheckKills = true;
+
+    public bool GetDontCheckKills()
+    {
+        return dontCheckKills;
+    }
+
+    public void SetDontCheckKills(bool dontCheckKills)
+    {
+        this.dontCheckKills = dontCheckKills;
+    }
+
+    public int GetGrowerKillLimit()
+    {
+        return growerKillLimit;
+    }
+
+    public void SetGrowerKillLimit(int growerKillLimit)
+    {
+        this.growerKillLimit = growerKillLimit;
+    }
+
     public void SetResolution(int resolution)
     {
         this.resolution = resolution;

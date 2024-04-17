@@ -49,7 +49,9 @@ public class Attractor : Node
         {
             Grower g = (Grower)growers[i];
 
-            if (g.numKills < 20)
+            bool dontCheckKills = manager.GetDontCheckKills() ? true : g.numKills < manager.GetGrowerKillLimit();
+
+            if (dontCheckKills)
             {
                 // only look at grow nodes within 1 range in the grid
                 //Debug.Log("COMPARING: (" + g.gridLocation.Item1 + "," + g.gridLocation.Item2 + ") and: (" + gridLocation.Item1 + "," + gridLocation.Item2 + ")");

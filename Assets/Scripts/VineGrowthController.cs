@@ -42,6 +42,11 @@ public class VineGrowthController : MonoBehaviour
     [Range(0.003f, 0.01f)]
     [SerializeField]
     private float maxVineThickness = 0.007f;
+    [SerializeField]
+    private bool enableKillLimit = false;
+    [Range(10, 50)]
+    [SerializeField]
+    private int growerKillLimit = 20;
 
     [Header("Leaf Settings")]
     [SerializeField]
@@ -106,7 +111,6 @@ public class VineGrowthController : MonoBehaviour
         get { return textureName; }
         set { textureName = value; }
     }
-
     private void OnValidate()
     {
         if (drawVine != null && drawVine.Result != null)
@@ -115,7 +119,6 @@ public class VineGrowthController : MonoBehaviour
                 textureResolution.y != drawVine.Result.height)
                 drawVine.SetTextureResolution((int)textureResolution.x, (int)textureResolution.y);
         }
-
 
         if (baseObjectMat != null && boundaryTex != null && vineTexture != null)
         {
@@ -132,6 +135,12 @@ public class VineGrowthController : MonoBehaviour
                 baseObjectMat.SetFloat("_Opacity", 1.0f);
                 isPainting = false;
             }
+        }
+
+        if(makePathContinuous != null)
+        {
+            makePathContinuous.SetGrowerKillLimit(growerKillLimit);
+            makePathContinuous.SetDontCheckKills(!enableKillLimit);
         }
     }
 
@@ -152,6 +161,9 @@ public class VineGrowthController : MonoBehaviour
         wiggleAttractionPoints = false;
         wiggleAmount = 0.0f;
         leafDensityInterval = 2;
+
+        enableKillLimit = false;
+        growerKillLimit = 20;
 
         mainCam = Camera.main;
 
