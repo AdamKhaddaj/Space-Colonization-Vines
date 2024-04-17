@@ -8,7 +8,8 @@ Shader "Unlit/DrawLeaf"
         _Scale("Leaf Scale", Vector) = (0.05, 0.05, 0.0, 0.0)
         _Rotation("Leaf Rotation", float) = 25.0
         _PositionOffset("Leaf Position Offset", float) = 0.0
-
+        _BrightnessVariance("Brightness Variance", Range(0.0, 2.0)) = 1.0
+        _ColorVariance("Variance Color", Vector) = (1.0, 1.0, 1.0, 1.0)
     }
     SubShader
     {
@@ -40,9 +41,11 @@ Shader "Unlit/DrawLeaf"
             float4 _MainTex_ST;
 
             fixed4 _Position;
+            fixed4 _ColorVariance;
             float _PositionOffset;
             fixed4 _Scale;
             float _Rotation;
+            float _BrightnessVariance;
 
             v2f vert (appdata v)
             {
@@ -125,6 +128,11 @@ Shader "Unlit/DrawLeaf"
                 // sample the texture
                 fixed4 col = tex2D(_MainTex, i.uv);
                 fixed4 leafCol = tex2D(_LeafTex, pos);
+
+                _BrightnessVariance = lerp(0.8, 1.2, _BrightnessVariance);
+
+                //vary leaf color
+                leafCol.xyz *= _BrightnessVariance; // *_ColorVariance.xyz;
 
                 fixed4 res = leafCol;
 

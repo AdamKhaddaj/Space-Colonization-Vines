@@ -171,7 +171,14 @@ public class VineGrowthController : MonoBehaviour
 
     void Update()
     {
-        if(Input.GetKey(KeyCode.Mouse0) && isPainting)
+        bool mousePressed = false;
+
+        if (drawMode == DrawMode.PlaceGrowthNodes)
+            mousePressed = Input.GetKeyDown(KeyCode.Mouse0);
+        else if (drawMode == DrawMode.DrawZones)
+            mousePressed = Input.GetKey(KeyCode.Mouse0);
+
+        if (mousePressed && isPainting)
         {
             if(Physics.Raycast(mainCam.ScreenPointToRay(Input.mousePosition), out hit))
             {

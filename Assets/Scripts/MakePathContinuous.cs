@@ -124,7 +124,7 @@ public class MakePathContinuous : MonoBehaviour
                         {
                             int gridX = Mathf.FloorToInt(j / (resolution / 6));
                             int gridY = Mathf.FloorToInt(i / (resolution / 6));
-                            Attractor a = new Attractor(new Vector2(j, i), null, (gridX, gridY), 5, 2, this, 1, 2);
+                            Attractor a = new Attractor(new Vector2(j, i), null, (gridX, gridY), 3, 2, this, 1, 2);
                             attractors.Add(a);
                         }
                     }

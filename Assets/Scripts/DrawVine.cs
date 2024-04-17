@@ -112,6 +112,8 @@ public class DrawVine
                     drawLeafMaterial.SetVector("_Position", new Vector4(pos.x, pos.y, 0.0f, 0.0f));
                     drawLeafMaterial.SetFloat("_Rotation", rotation);
                     drawLeafMaterial.SetFloat("_PositionOffset", leafOffset);
+                    drawLeafMaterial.SetFloat("_BrightnessVariance", Random.Range(0.0f, 1.0f));
+                    drawLeafMaterial.SetVector("_ColorVariance", new Vector4(199.0f/255.0f, 167.0f/255.0f, 54.0f/255.0f, 1.0f));
 
                     float scaleOff = Random.Range(-randomLeafScaleOffset, randomLeafScaleOffset);
                     drawLeafMaterial.SetVector("_Scale", new Vector4(thicknessRatio * (leafScale + scaleOff), thicknessRatio * (leafScale + scaleOff), 0.0f, 0.0f));
@@ -270,7 +272,7 @@ public class DrawVine
     }
 
     /*
-     * returns rotation of leaf that is perpendicular to the vine it is growing on
+     * returns rotation of leaf
      */
     private float CalculateLeafRotation(Grower node, bool addRotOffset, bool addGravity = false, float gravityScale = 0.0f, float randomLeafRotOffset = 0.0f)
     {
