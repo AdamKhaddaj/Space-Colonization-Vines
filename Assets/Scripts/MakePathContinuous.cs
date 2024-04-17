@@ -172,69 +172,6 @@ public class MakePathContinuous : MonoBehaviour
         }
     }
 
-    private void CreatePath()
-    {
-        List<Grower> influencedNodes = new List<Grower>();
-        foreach (Attractor a in attractors)
-        {
-            if (a.active)
-            {
-                // Find the closest growth node. If it's close enough to be in kill radius, kill this attractor.
-                // If it's only in influence radius, affect that growth node's grow direction
-                // If there are no nearby nodes, do nothing.
-
-                (Grower, bool) info = a.GetInfluencedNodeContinuous();
-                Grower g = info.Item1;
-                bool dying = info.Item2;
-                if (g != null)
-                {
-                    Vector2 pushDir = new Vector2(a.pos.x - g.pos.x, a.pos.y - g.pos.y).normalized;
-                    g.growthDir += pushDir;
-                    g.numInfluencers++;
-
-                    if (!g.active)
-                    {
-                        g.active = true;
-                        influencedNodes.Add(g);
-                    }
-                }
-                if (dying)
-                {
-                    a.active = false;
-                    g.numKills++;
-                }
-            }
-
-            if (wiggleAttractionNodes)
-            {
-                a.pos.x += Mathf.Cos(Time.time);
-                a.pos.y += Mathf.Sin(Time.time);
-            }
-        }
-
-        // Now we can iterate over the growers, and have them move in their grow directions
-        foreach (Grower g in influencedNodes)
-        {
-            // Create new growth node in direction of growth direction
-            Vector2 finalGrowDir = new Vector2(g.growthDir.x / g.numInfluencers, g.growthDir.y / g.numInfluencers).normalized;
-            float x = finalGrowDir.x;
-            float y = finalGrowDir.y;
-            Vector2 newGrowthPos = new Vector2(g.pos.x + x, g.pos.y + y);
-
-            // NOTE!!! this currently does not check for overlap
-            int gridX = Mathf.FloorToInt(newGrowthPos.x / (resolution / 6));
-            int gridY = Mathf.FloorToInt(newGrowthPos.y / (resolution / 6));
-            Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), null, (gridX, gridY), g, g.tag, 0);
-            growers.Add(leaf);
-            g.ThicknessChange();
-
-            g.growthDir = Vector2.zero;
-            g.numInfluencers = 0;
-            g.active = false;
-        }
-        Debug.Log("Step");
-    }
-
     public void CreatePathFull()
     {
         bool death = false;
@@ -322,6 +259,7 @@ public class MakePathContinuous : MonoBehaviour
                 int gridY = Mathf.FloorToInt(newGrowthPos.y / (resolution / 6));
                 Grower leaf = new Grower(new Vector2(newGrowthPos.x, newGrowthPos.y), null, (gridX, gridY), g, g.tag, depth);
                 leaf.parent.child = leaf;
+                leaf.numKills = g.numKills + Random.Range(-3, 4);
                 growers.Add(leaf);
                 g.ThicknessChange();
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -77,7 +78,7 @@ public class VineGrowthController : MonoBehaviour
 
     private string zonesBrushShaderName = "Unlit/DrawCircle";
     private string drawVineShaderName = "Unlit/DrawLine"; //shader to use to draw shape for grower nodes
-    private string drawLeafShaderName = "Unlit/DrawLeaf"; //shader to use to draw shape for grower nodes
+    private string drawLeafShaderName = "Unlit/DrawLeaf"; //shader to use to draw leaves
 
     private Shader drawVineShader;
     private Shader drawLeafShader;
@@ -88,7 +89,6 @@ public class VineGrowthController : MonoBehaviour
     private Material zonesBrushMat;
     private Material baseObjectMat;
 
-    private MakePath makePath;
     private MakePathContinuous makePathContinuous;
 
     private DrawVine drawVine;
@@ -137,7 +137,6 @@ public class VineGrowthController : MonoBehaviour
 
     void Start()
     {
-        makePath = this.GetComponent<MakePath>();
         makePathContinuous = this.GetComponent<MakePathContinuous>();
 
         zonesBrushMat = new Material(Shader.Find(zonesBrushShaderName));
@@ -231,6 +230,7 @@ public class VineGrowthController : MonoBehaviour
 
     public void GenerateVines()
     {
+        DateTime startTime = DateTime.Now;
 
         SetUpMakePath();
 
@@ -244,6 +244,10 @@ public class VineGrowthController : MonoBehaviour
         baseObjectMat.SetFloat("_Opacity", 1.0f);
 
         baseObjectMat.SetTexture("_VineTex", vineTexture);
+
+        DateTime endTime = DateTime.Now;
+
+        Debug.Log("Vines generated in " + ((TimeSpan)(endTime - startTime)).TotalSeconds + "s");
     }
 
     public void ResetBoundaryTexture()
@@ -287,8 +291,6 @@ public class VineGrowthController : MonoBehaviour
         baseObjectMat.SetTexture("_VineTex", vineTexture);
         drawMode = DrawMode.None;
         baseObjectMat.SetFloat("_Opacity", 1.0f);
-
-
     }
 
     public void SaveTexture()

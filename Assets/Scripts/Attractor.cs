@@ -38,59 +38,6 @@ public class Attractor : Node
         killRadius = r;
     }
 
-    public (Grower, bool) GetInfluencedNode()
-    {
-        int x = (int)base.pos[0];
-        int y = (int)base.pos[1];
-        Grower closestNode = null;
-        float closestDist = Mathf.Infinity;
-        for (int i = Mathf.Clamp(y-influenceRadius, 0, resolution); i < Mathf.Clamp(y+influenceRadius,0,resolution); i++)
-        {
-            for (int j = Mathf.Clamp(x - influenceRadius, 0, resolution); j < Mathf.Clamp(x + influenceRadius, 0, resolution); j++)
-            {
-                // Check if it's actually inside the radius circle
-                if (Mathf.Pow(j-x,2) + Mathf.Pow(i-y,2) <= Mathf.Pow(influenceRadius, 2))
-                {
-                    // Now check if it's actually inside the kill radius circle
-                    if (Mathf.Pow(j-x, 2) + Mathf.Pow(i-y, 2) <= Mathf.Pow(killRadius, 2))
-                    {
-                        if (nodes[j, i] != null)
-                        {
-                            if (nodes[j, i].GetType() == typeof(Grower))
-                            {
-                                Grower g = (Grower)nodes[j, i];
-                                float dist = Vector2.Distance(pos, g.pos);
-                                dying = true;
-                                if (dist < closestDist)
-                                {
-                                    closestDist = dist;
-                                    closestNode = g;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (nodes[j, i] != null)
-                        {
-                            if (nodes[j, i].GetType() == typeof(Grower))
-                            {
-                                Grower g = (Grower)nodes[j, i];
-                                float dist = Vector2.Distance(pos, g.pos);
-                                if (dist < closestDist)
-                                {
-                                    closestDist = dist;
-                                    closestNode = g;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return (closestNode, dying);
-    }
-
     public (Grower, bool) GetInfluencedNodeContinuous()
     {
         Grower closestNode = null;
@@ -102,30 +49,33 @@ public class Attractor : Node
         {
             Grower g = (Grower)growers[i];
 
-            // only look at grow nodes within 1 range in the grid
-            //Debug.Log("COMPARING: (" + g.gridLocation.Item1 + "," + g.gridLocation.Item2 + ") and: (" + gridLocation.Item1 + "," + gridLocation.Item2 + ")");
-            if(Mathf.Abs(g.gridLocation.Item1 - gridLocation.Item1) < 2 && Mathf.Abs(g.gridLocation.Item2 - gridLocation.Item2) < 2)
+            if (g.numKills < 20)
             {
-                if (g.tag == tag || g.tag == tag2)
+                // only look at grow nodes within 1 range in the grid
+                //Debug.Log("COMPARING: (" + g.gridLocation.Item1 + "," + g.gridLocation.Item2 + ") and: (" + gridLocation.Item1 + "," + gridLocation.Item2 + ")");
+                if (Mathf.Abs(g.gridLocation.Item1 - gridLocation.Item1) < 2 && Mathf.Abs(g.gridLocation.Item2 - gridLocation.Item2) < 2)
                 {
-                    float dist = Vector2.Distance(pos, g.pos);
-                    if (dist <= influenceRadius)
+                    if (g.tag == tag || g.tag == tag2)
                     {
-                        if (dist <= killRadius)
+                        float dist = Vector2.Distance(pos, g.pos);
+                        if (dist <= influenceRadius)
                         {
-                            dying = true;
-                            if (dist < closestDist)
+                            if (dist <= killRadius)
                             {
-                                closestDist = dist;
-                                closestNode = g;
+                                dying = true;
+                                if (dist < closestDist)
+                                {
+                                    closestDist = dist;
+                                    closestNode = g;
+                                }
                             }
-                        }
-                        else
-                        {
-                            if (dist < closestDist)
+                            else
                             {
-                                closestDist = dist;
-                                closestNode = g;
+                                if (dist < closestDist)
+                                {
+                                    closestDist = dist;
+                                    closestNode = g;
+                                }
                             }
                         }
                     }
