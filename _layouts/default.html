@@ -15,10 +15,10 @@
   <body style="text-align:center;">
 
     <header class="page-header" role="banner" style="padding-bottom:0px">
-      <h1 class="project-name">Dracula</h1>
-      <h2>a Real-Time Strategy Game Prototype</h2>
+      <h1 class="project-name">Vine Growth Generator</h1>
+      <h2>using Space Colonization Algorithms</h2>
       {% if site.github.is_project_page %}
-        <a href="{{ site.github.repository_url }}" class="btn">View on GitHub</a>
+        <a href="https://github.com/KarimTantawy/Procedural-Vine-Growth-Project" class="btn">View on GitHub</a>
       {% endif %}
       {% if site.show_downloads %}
         <a href="{{ site.github.zip_url }}" class="btn">Download .zip</a>
@@ -28,28 +28,18 @@
 
     <main id="content" class="main-content" role="main">
       <header>
-        <h1 style="font-size:32px">Description</h1>
+        <h1 style="font-size:32px">Summary</h1>
       </header>
-      Dracula is a prototype RTS game developed in Unity that explores systems such as hierarchical state-based AI, managing many game agents, dynamic UI handling, and more.
+      This project presents a 2D vine growth generator and renderer that stores the traversal of vines growths in UV space, and renders these vines onto textures in real-time.
       <br><br>
-      Custom shaders are used for the reflective crystal textures and barrier textures, and lighting is handled using Unity tools.
+      This is primarily achieved through an implementation of Space Colonization Algorithms, first introduced by <a href="http://algorithmicbotany.org/papers/colonization.egwnp2007.large.pdf">Runions et al.</a>
       <br><br>
-      All scripts, shaders, and models were created by Adam Khaddaj and <a href="https://github.com/LeoMcCarthyKennedy">Leo McCarthy-Kennedy</a> 
+      This project also implements a simple interface through the Unity inspector that allows users to tweak several paramters for altering growth behaviours, including branching frequency, inclusion/exclusion zones, leaf generation, vine overlap, vine thickness, and more. Instructions for installing and using this tool can be found <a href="https://github.com/KarimTantawy/Procedural-Vine-Growth-Project/tree/main">here</a> on the "Set-Up Instructions" pdf.
       <br><br>
-      Ambient music created by Adam Khaddaj.
-      <br><br>
-      3D animations are implemented using Mixamo.
+      All scripts and shaders were created by Adam Khaddaj and <a href="https://github.com/KarimTantawy">Karim Tantawy</a>
       <header>
-        <h1 style="font-size:32px; padding-top:10px">Gameplay Video</h1>
+        <h1 style="font-size:32px">Screenshots</h1>
       </header>
-      <iframe width="830" height="485" src="https://www.youtube.com/embed/8-zZm7djzhU?si=i82bV2xh2q1Q-KF-" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>      <header>
-      <header>
-        <h1 style="font-size:32px;">Screenshots</h1>
-      </header>
-      <img src="Images/Capture.PNG" alt="Image" width="950" height="480">
-      <img src="Images/thePalace.PNG" alt="Image" width="950" height="480">
-      <img src="Images/siege.PNG" alt="Image" width="950" height="480">
-      <img src="Images/bigGuy.PNG" alt="Image" width="950" height="480">
 
       <footer class="site-footer">
         {% if site.github.is_project_page %}
