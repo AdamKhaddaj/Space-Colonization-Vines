@@ -8,4 +8,6 @@ Instructions for installing and using this tool can be found on the "Set-Up Inst
 
 A more thorough breakdown of this project can be found in the COMP4900_FinalProjectReport.pdf.
 
+For some visual examples, view the githubpage here: https://adamkhaddaj.github.io/Space-Colonization-Vines/
+
 All scripts and shaders were created by Adam Khaddaj and Karim Tantawy (https://github.com/KarimTantawy)
